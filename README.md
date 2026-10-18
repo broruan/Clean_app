@@ -7,8 +7,8 @@
 
 <div align="center">
 
-[![Build](https://github.com/broruan/Clean_app/actions/workflows/build.yml/badge.svg)](https://github.com/broruan/Clean_app/actions/workflows/build.yml)
-[![Release](https://img.shields.io/github/v/release/broruan/Clean_app?color=0f766e)](https://github.com/broruan/Clean_app/releases/latest)
+[![Build](https://github.com/broruan/Clean_app/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/broruan/Clean_app/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/broruan/Clean_app?color=0f766e&display_name=tag&cacheSeconds=300)](https://github.com/broruan/Clean_app/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Ubuntu](https://img.shields.io/badge/Ubuntu-22.04%20%7C%2024.04%20%7C%2026.04-E95420?logo=ubuntu&logoColor=white)](#ubuntu-packages)
 [![Architecture](https://img.shields.io/badge/64--bit-amd64%20%7C%20arm64-334155)](#ubuntu-packages)

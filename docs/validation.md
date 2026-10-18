@@ -2,6 +2,20 @@
 
 [Build instructions](building.md) · [CI runs](https://github.com/broruan/Clean_app/actions/workflows/build.yml)
 
+## Release v1.1.2 / 已验证发布
+
+On 2026-10-18, [release CI run #5](https://github.com/broruan/Clean_app/actions/runs/39088717438) completed successfully for tag [`v1.1.2`](https://github.com/broruan/Clean_app/tree/v1.1.2), commit `eb7fa7a`. All six native jobs completed compilation, all five CTest targets, DEB verification, package installation, and a read-only offscreen smoke check. Release assets were downloaded again and all six DEBs matched `SHA256SUMS`.
+
+2026-10-18，[正式发布 CI #5](https://github.com/broruan/Clean_app/actions/runs/39088717438) 在标签 `v1.1.2`、提交 `eb7fa7a` 上全部通过。六个原生任务均完成编译、五个 CTest 目标、DEB 检查、安装包安装与离屏只读界面检查；发布后重新下载六个 DEB，全部通过 `SHA256SUMS` 校验。
+
+| Ubuntu | amd64 | arm64 |
+| --- | --- | --- |
+| 22.04 | Passed / 通过 | Passed / 通过 |
+| 24.04 | Passed / 通过 | Passed / 通过 |
+| 26.04 | Passed / 通过 | Passed / 通过 |
+
+These are automated CI results; the desktop and device boundaries below still apply. / 以上为自动化 CI 结果，下述桌面与实机验证边界仍然适用。
+
 ## English
 
 The release workflow targets six native builds: Ubuntu 22.04, 24.04, and 26.04, each on `amd64` and `arm64`. The workflow definition is a target matrix; a successful run for the exact release tag is the evidence that its jobs passed. Read individual test logs for conditional skips. Do not infer a green result from the presence of this document or a downloadable package alone.
