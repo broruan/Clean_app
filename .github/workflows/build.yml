@@ -1,0 +1,128 @@
+name: Build and release
+
+on:
+  push:
+    branches: [main]
+    tags: ['v*']
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: build-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: ${{ !startsWith(github.ref, 'refs/tags/') }}
+
+jobs:
+  build:
+    name: Ubuntu ${{ matrix.ubuntu }} / ${{ matrix.arch }}
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { ubuntu: '22.04', arch: amd64, runner: ubuntu-22.04 }
+          - { ubuntu: '22.04', arch: arm64, runner: ubuntu-22.04-arm }
+          - { ubuntu: '24.04', arch: amd64, runner: ubuntu-24.04 }
+          - { ubuntu: '24.04', arch: arm64, runner: ubuntu-24.04-arm }
+          - { ubuntu: '26.04', arch: amd64, runner: ubuntu-26.04 }
+          - { ubuntu: '26.04', arch: arm64, runner: ubuntu-26.04-arm }
+    runs-on: ${{ matrix.runner }}
+    timeout-minutes: 25
+    steps:
+      - name: Check out source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2 (Node 24)
+        with:
+          persist-credentials: false
+
+      - name: Install build and runtime dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --yes --no-install-recommends \
+            build-essential cmake qtbase5-dev libqt5svg5 dpkg-dev \
+            desktop-file-utils libxml2-utils pkexec xdg-utils fonts-noto-cjk baobab
+
+      - name: Check native build environment
+        env:
+          EXPECTED_UBUNTU: ${{ matrix.ubuntu }}
+          EXPECTED_ARCH: ${{ matrix.arch }}
+        run: |
+          source /etc/os-release
+          test "$ID" = ubuntu
+          test "$VERSION_ID" = "$EXPECTED_UBUNTU"
+          test "$(dpkg --print-architecture)" = "$EXPECTED_ARCH"
+
+      - name: Build, run tests, package and verify
+        run: bash packaging/build-deb.sh --qt-major 5 --jobs 4
+
+      - name: Install the generated package and run a read-only UI check
+        run: |
+          sudo apt-get install --yes ./dist/*.deb
+          QT_QPA_PLATFORM=offscreen disklens --version
+          fixture_dir="${RUNNER_TEMP}/disklens-smoke"
+          mkdir -p "$fixture_dir"
+          printf 'DiskLens read-only smoke fixture\n' > "$fixture_dir/example.txt"
+          QT_QPA_PLATFORM=offscreen timeout 120s disklens --smoke-test --scan-path "$fixture_dir"
+
+      - name: Upload native package
+        uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0 (Node 24)
+        with:
+          name: disklens-ubuntu${{ matrix.ubuntu }}-${{ matrix.arch }}
+          path: dist/*.deb
+          if-no-files-found: error
+          retention-days: 14
+
+  release:
+    name: Publish release assets
+    if: startsWith(github.ref, 'refs/tags/v')
+    needs: build
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: write
+    steps:
+      - name: Check out source
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2 (Node 24)
+        with:
+          persist-credentials: false
+
+      - name: Download all native packages
+        uses: actions/download-artifact@37930b1c2abaa49bbe596cd826c3c89aef350131 # v7.0.0 (Node 24)
+        with:
+          pattern: disklens-ubuntu*
+          path: release-assets
+          merge-multiple: true
+
+      - name: Validate the tag and generate SHA256 checksums
+        env:
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          set -euo pipefail
+          version="$(sed -n 's/^project(DiskLens VERSION \([0-9.]*\) LANGUAGES CXX)$/\1/p' CMakeLists.txt)"
+          test "$RELEASE_TAG" = "v${version}"
+          test -f "docs/releases/${RELEASE_TAG}.md"
+          test "$(find release-assets -maxdepth 1 -name '*.deb' | wc -l)" -eq 6
+          for ubuntu_version in 22.04 24.04 26.04; do
+            for package_arch in amd64 arm64; do
+              test -f "release-assets/disklens_${version}_ubuntu${ubuntu_version}_${package_arch}.deb"
+            done
+          done
+          cd release-assets
+          sha256sum *.deb > SHA256SUMS
+          sha256sum --check SHA256SUMS
+
+      - name: Publish bilingual release notes and packages
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+          RELEASE_TAG: ${{ github.ref_name }}
+        run: |
+          if gh release view "$RELEASE_TAG" >/dev/null 2>&1; then
+            gh release upload "$RELEASE_TAG" release-assets/*.deb release-assets/SHA256SUMS --clobber
+            gh release edit "$RELEASE_TAG" --title "DiskLens ${RELEASE_TAG}" \
+              --notes-file "docs/releases/${RELEASE_TAG}.md"
+          else
+            gh release create "$RELEASE_TAG" release-assets/*.deb release-assets/SHA256SUMS \
+              --verify-tag --title "DiskLens ${RELEASE_TAG}" \
+              --notes-file "docs/releases/${RELEASE_TAG}.md"
+          fi

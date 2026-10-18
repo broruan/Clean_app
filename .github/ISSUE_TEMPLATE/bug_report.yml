@@ -1,0 +1,42 @@
+name: Bug report / 问题反馈
+description: Report a reproducible problem / 报告可复现的问题
+title: "[Bug] "
+body:
+  - type: markdown
+    attributes:
+      value: |
+        For security vulnerabilities, read SECURITY.md first. Remove private paths and data from logs or screenshots.
+        安全漏洞请先阅读 SECURITY.md。日志与截图请去除个人路径和私密数据。
+  - type: input
+    id: version
+    attributes:
+      label: DiskLens version and installation source / 版本与安装来源
+      placeholder: "1.1.2, GitHub .deb / source build"
+    validations:
+      required: true
+  - type: input
+    id: system
+    attributes:
+      label: Ubuntu, architecture, and desktop / 系统版本、架构与桌面
+      description: "Include VERSION_ID, dpkg --print-architecture, desktop, and X11/Wayland if known. / 请附版本号、架构、桌面与已知的显示协议。"
+      placeholder: "Ubuntu 24.04, arm64, GNOME, Wayland"
+    validations:
+      required: true
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to reproduce / 复现步骤
+      description: "Include the page and operation; use disposable fixtures for destructive operations. / 写明页面与操作；破坏性操作请使用可丢弃样例。"
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected and actual result / 预期与实际结果
+    validations:
+      required: true
+  - type: textarea
+    id: evidence
+    attributes:
+      label: Logs, screenshots, and checks / 日志、截图与验证
+      description: "Include errors and skipped tests. Do not post credentials or personal files. / 附错误与跳过测试，不要发布凭据或个人文件。"

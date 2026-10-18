@@ -1,0 +1,23 @@
+name: Feature request / 功能建议
+description: Explain a user need and desired result / 描述需求与期望结果
+title: "[Feature] "
+body:
+  - type: textarea
+    id: need
+    attributes:
+      label: User need / 使用需求
+      description: "What are you trying to accomplish? / 你希望完成什么操作？"
+    validations:
+      required: true
+  - type: textarea
+    id: result
+    attributes:
+      label: Proposed behavior / 期望行为
+      description: "Describe the interaction and expected result. / 描述交互与最终结果。"
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Alternatives and environment / 替代方案与环境
+      description: "Include Ubuntu version, architecture, and any cleanup or privilege implications. / 请附系统、架构，以及涉及的清理或权限影响。"

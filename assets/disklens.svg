@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 128 128" role="img" aria-labelledby="title desc">
+  <title id="title">DiskLens</title>
+  <desc id="desc">A disk usage ring and magnifying lens on an indigo rounded square.</desc>
+  <defs>
+    <linearGradient id="tile" x1="8" y1="4" x2="116" y2="124" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#6478ff"/>
+      <stop offset="1" stop-color="#344bd6"/>
+    </linearGradient>
+    <linearGradient id="mint" x1="58" y1="26" x2="93" y2="60" gradientUnits="userSpaceOnUse">
+      <stop offset="0" stop-color="#a4ffdf"/>
+      <stop offset="1" stop-color="#42d9b1"/>
+    </linearGradient>
+  </defs>
+  <rect x="2" y="2" width="124" height="124" rx="30" fill="url(#tile)"/>
+  <rect x="2.5" y="2.5" width="123" height="123" rx="29.5" fill="none" stroke="#ffffff" stroke-opacity=".18"/>
+  <path d="m83 84 20 20" fill="none" stroke="#243dba" stroke-opacity=".45" stroke-width="14" stroke-linecap="round"/>
+  <path d="m82 82 20 20" fill="none" stroke="#ffffff" stroke-width="12" stroke-linecap="round"/>
+  <circle cx="58" cy="58" r="33" fill="#3f54dc" stroke="#dfe7ff" stroke-width="11"/>
+  <path d="M58 25a33 33 0 0 1 33 33" fill="none" stroke="url(#mint)" stroke-width="11" stroke-linecap="round"/>
+  <circle cx="58" cy="58" r="8" fill="#ffffff"/>
+</svg>

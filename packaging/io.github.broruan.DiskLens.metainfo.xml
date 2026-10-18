@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<component type="desktop-application">
+  <id>io.github.broruan.DiskLens</id>
+  <name>DiskLens</name>
+  <name xml:lang="zh-CN">磁盘透镜</name>
+  <summary>Explore disk usage, installed apps, large files and user caches</summary>
+  <summary xml:lang="zh-CN">查看磁盘占用、已安装软件与大文件，清理用户缓存</summary>
+  <metadata_license>CC0-1.0</metadata_license>
+  <project_license>MIT</project_license>
+  <developer id="io.github.broruan">
+    <name>broruan and DiskLens contributors</name>
+  </developer>
+  <description>
+    <p>DiskLens is a local Qt desktop application for Ubuntu. Inspect filesystem usage, browse DEB, Snap and Flatpak packages, find large files and review user cache and log cleanup.</p>
+    <p xml:lang="zh-CN">磁盘透镜是一款面向 Ubuntu 的本地 Qt 桌面应用，提供文件系统空间统计、DEB / Snap / Flatpak 软件查看、大文件扫描以及用户缓存和日志清理。</p>
+    <p>The desktop interface is currently in Simplified Chinese. Documentation is available in English and Chinese. Package removal requires a preview and confirmation; cache cleanup requires selecting and confirming scanned entries.</p>
+    <p xml:lang="zh-CN">桌面界面目前为简体中文，文档提供中英文版本。软件卸载需预览并确认，缓存清理需勾选并确认扫描条目。</p>
+  </description>
+  <launchable type="desktop-id">disklens.desktop</launchable>
+  <url type="homepage">https://github.com/broruan/Clean_app</url>
+  <url type="bugtracker">https://github.com/broruan/Clean_app/issues</url>
+  <url type="vcs-browser">https://github.com/broruan/Clean_app</url>
+  <provides><binary>disklens</binary></provides>
+  <categories><category>System</category><category>Utility</category></categories>
+  <content_rating type="oars-1.1"/>
+  <releases>
+    <release version="1.1.2" date="2026-10-18">
+      <description><p>Multi-version Ubuntu builds for x86_64 and ARM64, refreshed icons and bilingual project documentation.</p></description>
+    </release>
+  </releases>
+</component>

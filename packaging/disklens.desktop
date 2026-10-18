@@ -1,0 +1,11 @@
+[Desktop Entry]
+Type=Application
+Name=DiskLens
+Name[zh_CN]=磁盘透镜
+Comment=Explore disk usage, installed software, large files and cache cleanup
+Comment[zh_CN]=查看磁盘占用与大文件，管理软件并清理缓存日志
+Exec=disklens
+Icon=disklens
+Terminal=false
+Categories=System;
+StartupNotify=true
