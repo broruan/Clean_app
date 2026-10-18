@@ -1,3 +1,4 @@
+#include "localization.h"
 #include "spaceanalyzer.h"
 
 #include <QCryptographicHash>
@@ -153,17 +154,17 @@ struct ScanRoot {
     bool initialize(const QString &requested, int limit, QString &error)
     {
         if (requested.trimmed().isEmpty() || requested.contains(QChar::Null)) {
-            error = QStringLiteral("请选择有效的文件夹路径。");
+            error = dlTr("请选择有效的文件夹路径。");
             return false;
         }
         if (limit <= 0 || limit > MaximumEntries) {
-            error = QStringLiteral("扫描上限必须在 1 至 %1 之间。").arg(MaximumEntries);
+            error = dlTr("扫描上限必须在 1 至 %1 之间。").arg(MaximumEntries);
             return false;
         }
         path = QDir::cleanPath(QDir(requested).absolutePath());
         descriptor.value = openRoot(path);
         if (descriptor.value < 0 || ::fstat(descriptor.value, &information) != 0) {
-            error = QStringLiteral("无法打开文件夹 %1：%2。路径不能包含符号链接。")
+            error = dlTr("无法打开文件夹 %1：%2。路径不能包含符号链接。")
                         .arg(path, systemError(errno));
             return false;
         }
@@ -171,7 +172,7 @@ struct ScanRoot {
         bool hasMountPaths = false;
         mounts = mountPaths(hasMountPaths);
         if (!hasMountId && !hasMountPaths) {
-            error = QStringLiteral("无法读取文件系统挂载边界，请检查 /proc 是否可访问。");
+            error = dlTr("无法读取文件系统挂载边界，请检查 /proc 是否可访问。");
             return false;
         }
         return true;
@@ -350,7 +351,7 @@ DirectoryScanResult analyzeDirectory(const QString &requested, std::atomic_bool 
     result.root.allocatedBytes = allocatedSize(root.information);
     Directory directory = directoryFromDescriptor(::dup(root.descriptor.value));
     if (!directory) {
-        result.error = QStringLiteral("无法读取文件夹内容：%1").arg(systemError(errno));
+        result.error = dlTr("无法读取文件夹内容：%1").arg(systemError(errno));
         return result;
     }
     std::vector<Frame> frames;
@@ -457,7 +458,7 @@ DuplicateScanResult findDuplicates(const QString &requested, quint64 minimumByte
         return result;
     Directory directory = directoryFromDescriptor(::dup(root.descriptor.value));
     if (!directory) {
-        result.error = QStringLiteral("无法读取文件夹内容：%1").arg(systemError(errno));
+        result.error = dlTr("无法读取文件夹内容：%1").arg(systemError(errno));
         return result;
     }
     std::vector<Frame> frames;

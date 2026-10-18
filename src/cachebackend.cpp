@@ -1,3 +1,4 @@
+#include "localization.h"
 #include "cachebackend.h"
 
 #include <QCryptographicHash>
@@ -131,7 +132,7 @@ QString normalizeRoot(const QString &path, bool optional, QString &error)
     if (optional && path.isEmpty())
         return {};
     if (path.isEmpty() || path.contains(QChar::Null) || !QDir::isAbsolutePath(path)) {
-        error = QStringLiteral("缓存和日志根目录必须是有效的绝对路径。");
+        error = dlTr("缓存和日志根目录必须是有效的绝对路径。");
         return {};
     }
     const QString normalized = QDir::cleanPath(path);
@@ -144,7 +145,7 @@ QString normalizeRoot(const QString &path, bool optional, QString &error)
     };
     if (broadRoots.contains(normalized) || home == normalized
         || home.startsWith(normalized + QLatin1Char('/'))) {
-        error = QStringLiteral("拒绝使用整个主目录、其祖先或系统公共目录作为缓存清理根目录：%1").arg(normalized);
+        error = dlTr("拒绝使用整个主目录、其祖先或系统公共目录作为缓存清理根目录：%1").arg(normalized);
         return {};
     }
     return normalized;
@@ -162,7 +163,7 @@ bool validateRoots(const QString &cacheInput, const QString &stateInput,
     if (!stateRoot.isEmpty()
         && (cacheRoot == stateRoot || cacheRoot.startsWith(stateRoot + QLatin1Char('/'))
             || stateRoot.startsWith(cacheRoot + QLatin1Char('/')))) {
-        error = QStringLiteral("缓存目录和日志目录不能相同或互相包含。");
+        error = dlTr("缓存目录和日志目录不能相同或互相包含。");
         return false;
     }
     return true;
@@ -298,7 +299,7 @@ void addMessage(QStringList &messages, const QString &message)
     if (messages.size() < maximumMessages)
         messages.append(message);
     else if (messages.size() == maximumMessages)
-        messages.append(QStringLiteral("其余条目的详细消息已省略。"));
+        messages.append(dlTr("其余条目的详细消息已省略。"));
 }
 
 void scanRoot(const QString &path, bool stateOnly, CacheScanResult &result,
@@ -308,26 +309,26 @@ void scanRoot(const QString &path, bool stateOnly, CacheScanResult &result,
     Descriptor root(openRoot(path));
     if (root.value < 0) {
         const int savedError = errno;
-        const QString message = QStringLiteral("无法扫描 %1：%2；目录不能包含软链接。").arg(path, errorText(savedError));
+        const QString message = dlTr("无法扫描 %1：%2；目录不能包含软链接。").arg(path, errorText(savedError));
         if (savedError == ENOENT)
-            addMessage(result.warnings, QStringLiteral("目录不存在，已跳过：%1").arg(path));
+            addMessage(result.warnings, dlTr("目录不存在，已跳过：%1").arg(path));
         else
             result.error = message;
         return;
     }
     struct stat rootInformation {};
     if (::fstat(root.value, &rootInformation) != 0 || !ownedDirectory(rootInformation)) {
-        result.error = QStringLiteral("缓存/日志根目录必须由当前用户拥有且可读取：%1").arg(path);
+        result.error = dlTr("缓存/日志根目录必须由当前用户拥有且可读取：%1").arg(path);
         return;
     }
     MountBoundary boundary(root.value);
     if (!boundary.available) {
-        result.error = QStringLiteral("无法验证文件系统挂载边界：%1").arg(path);
+        result.error = dlTr("无法验证文件系统挂载边界：%1").arg(path);
         return;
     }
     Directory rootDirectory(::fdopendir(root.value));
     if (!rootDirectory) {
-        result.error = QStringLiteral("无法读取目录 %1：%2").arg(path, errorText(errno));
+        result.error = dlTr("无法读取目录 %1：%2").arg(path, errorText(errno));
         return;
     }
     root.release(); // fdopendir owns the descriptor from here.
@@ -348,7 +349,7 @@ void scanRoot(const QString &path, bool stateOnly, CacheScanResult &result,
         identity.append(scope.toUtf8());
         identity.append(log ? "\0logs" : "\0cache", log ? 5 : 6);
         builder.entry.id = QString::fromLatin1(QCryptographicHash::hash(identity, QCryptographicHash::Sha256).toHex());
-        builder.entry.name = scope + (log ? QStringLiteral(" · 日志") : QString());
+        builder.entry.name = scope + (log ? dlTr(" · 日志") : QString());
         builder.entry.path = absolutePath(path, scope);
         builder.entry.rootPath = path;
         builder.entry.relativePath = scope;
@@ -466,7 +467,7 @@ bool validManifest(const CacheEntry &entry, const QString &cacheRoot, const QStr
                    QString &error)
 {
     if (entry.manifestToken.isEmpty() || entry.manifestToken != manifestSignature(entry)) {
-        error = QStringLiteral("扫描快照无效或已被修改，请重新扫描。");
+        error = dlTr("扫描快照无效或已被修改，请重新扫描。");
         return false;
     }
     const bool cache = entry.rootPath == cacheRoot;
@@ -474,14 +475,14 @@ bool validManifest(const CacheEntry &entry, const QString &cacheRoot, const QStr
     if ((!cache && !state) || (state && !entry.logOnly)
         || !validRelative(entry.relativePath) || entry.relativePath.contains(QLatin1Char('/'))
         || entry.path != absolutePath(entry.rootPath, entry.relativePath)) {
-        error = QStringLiteral("条目不属于已授权的缓存/日志根目录。");
+        error = dlTr("条目不属于已授权的缓存/日志根目录。");
         return false;
     }
     QSet<QString> directories, files;
     for (const auto &directory : entry.directories) {
         if (!validRelative(directory.relativePath) || !belongsToScope(directory.relativePath, entry.relativePath)
             || directory.device != entry.rootDevice || directories.contains(directory.relativePath)) {
-            error = QStringLiteral("扫描快照含有无效的父目录路径。");
+            error = dlTr("扫描快照含有无效的父目录路径。");
             return false;
         }
         directories.insert(directory.relativePath);
@@ -490,7 +491,7 @@ bool validManifest(const CacheEntry &entry, const QString &cacheRoot, const QStr
         if (!validRelative(file.relativePath) || !belongsToScope(file.relativePath, entry.relativePath)
             || isLog(file.relativePath) != entry.logOnly || file.device != entry.rootDevice
             || files.contains(file.relativePath)) {
-            error = QStringLiteral("扫描快照含有越界、重复或不符合日志规则的文件。");
+            error = dlTr("扫描快照含有越界、重复或不符合日志规则的文件。");
             return false;
         }
         files.insert(file.relativePath);
@@ -499,7 +500,7 @@ bool validManifest(const CacheEntry &entry, const QString &cacheRoot, const QStr
         for (int index = 0; index + 1 < parts.size(); ++index) {
             parent = parent.isEmpty() ? parts.at(index) : parent + QLatin1Char('/') + parts.at(index);
             if (!directories.contains(parent)) {
-                error = QStringLiteral("扫描快照缺少父目录信息，请重新扫描。");
+                error = dlTr("扫描快照缺少父目录信息，请重新扫描。");
                 return false;
             }
         }
@@ -624,13 +625,13 @@ CacheCleanResult cleanCaches(const QVector<CacheEntry> &selected, const QString 
         if (root.value < 0 || ::fstat(root.value, &rootInformation) != 0 || !ownedDirectory(rootInformation)
             || quint64(rootInformation.st_dev) != entry.rootDevice || quint64(rootInformation.st_ino) != entry.rootInode) {
             result.skippedFiles += quint64(entry.files.size());
-            addMessage(result.errors, QStringLiteral("根目录发生变化或不可访问，已保留：%1").arg(entry.rootPath));
+            addMessage(result.errors, dlTr("根目录发生变化或不可访问，已保留：%1").arg(entry.rootPath));
             continue;
         }
         MountBoundary boundary(root.value);
         if (!boundary.available || (entry.rootMountId && (!boundary.hasId || boundary.rootMount != entry.rootMountId))) {
             result.skippedFiles += quint64(entry.files.size());
-            addMessage(result.errors, QStringLiteral("无法验证挂载边界，已保留：%1").arg(entry.path));
+            addMessage(result.errors, dlTr("无法验证挂载边界，已保留：%1").arg(entry.path));
             continue;
         }
         QHash<QString, CacheDirectorySnapshot> directories;
@@ -656,7 +657,7 @@ CacheCleanResult cleanCaches(const QVector<CacheEntry> &selected, const QString 
                 ? openFileParent(currentRoot.value, entry, file.relativePath, directories, boundary) : -1);
             if (parent.value < 0) {
                 ++result.skippedFiles;
-                addMessage(result.errors, QStringLiteral("父目录发生变化、为软链接或不可访问，已保留：%1").arg(fullPath));
+                addMessage(result.errors, dlTr("父目录发生变化、为软链接或不可访问，已保留：%1").arg(fullPath));
                 continue;
             }
             const QByteArray name = QFile::encodeName(file.relativePath.section(QLatin1Char('/'), -1));
@@ -664,7 +665,7 @@ CacheCleanResult cleanCaches(const QVector<CacheEntry> &selected, const QString 
             if (::fstatat(parent.value, name.constData(), &information, AT_SYMLINK_NOFOLLOW) != 0
                 || !matchesFile(information, file) || !boundary.permits(parent.value, name.constData(), fullPath)) {
                 ++result.skippedFiles;
-                addMessage(result.errors, QStringLiteral("文件已改变、不属于当前用户或含硬链接，已保留：%1").arg(fullPath));
+                addMessage(result.errors, dlTr("文件已改变、不属于当前用户或含硬链接，已保留：%1").arg(fullPath));
                 continue;
             }
             if (canceled(cancel)) {
@@ -683,7 +684,7 @@ CacheCleanResult cleanCaches(const QVector<CacheEntry> &selected, const QString 
                 || ::fstatat(immediateParent.value, name.constData(), &immediate, AT_SYMLINK_NOFOLLOW) != 0
                 || !matchesFile(immediate, file)) {
                 ++result.skippedFiles;
-                addMessage(result.errors, QStringLiteral("文件在清理前发生变化，已保留：%1").arg(fullPath));
+                addMessage(result.errors, dlTr("文件在清理前发生变化，已保留：%1").arg(fullPath));
                 continue;
             }
             if (::unlinkat(immediateParent.value, name.constData(), 0) == 0) {
@@ -691,7 +692,7 @@ CacheCleanResult cleanCaches(const QVector<CacheEntry> &selected, const QString 
                 result.removedBytes += allocatedBytes(immediate);
             } else {
                 ++result.failedFiles;
-                addMessage(result.errors, QStringLiteral("无法清理 %1：%2").arg(fullPath, errorText(errno)));
+                addMessage(result.errors, dlTr("无法清理 %1：%2").arg(fullPath, errorText(errno)));
             }
         }
         if (result.canceled)

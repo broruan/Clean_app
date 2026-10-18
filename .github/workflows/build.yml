@@ -39,7 +39,7 @@ jobs:
         run: |
           sudo apt-get update
           sudo apt-get install --yes --no-install-recommends \
-            build-essential cmake qtbase5-dev libqt5svg5 dpkg-dev \
+            build-essential cmake qtbase5-dev libqt5svg5 qttranslations5-l10n dpkg-dev \
             desktop-file-utils libxml2-utils pkexec xdg-utils fonts-noto-cjk baobab
 
       - name: Check native build environment
@@ -51,6 +51,9 @@ jobs:
           test "$ID" = ubuntu
           test "$VERSION_ID" = "$EXPECTED_UBUNTU"
           test "$(dpkg --print-architecture)" = "$EXPECTED_ARCH"
+
+      - name: Check translation coverage and placeholders
+        run: python3 tools/update-translations.py --check
 
       - name: Build, run tests, package and verify
         run: bash packaging/build-deb.sh --qt-major 5 --jobs 4
@@ -72,8 +75,18 @@ jobs:
           for name in ('copy-a.bin', 'copy-b.bin'):
               (root / name).write_bytes(b'DiskLens fixture\n' * 100000)
           PY
-          for page in overview explorer duplicates developer; do
-            QT_QPA_PLATFORM=offscreen timeout 120s disklens --smoke-test --scan-path "$fixture_dir" --page "$page"
+          mkdir -p "$fixture_dir/home" "$fixture_dir/cache" "$fixture_dir/state" "$fixture_dir/config"
+          export HOME="$fixture_dir/home" XDG_CACHE_HOME="$fixture_dir/cache"
+          export XDG_STATE_HOME="$fixture_dir/state" XDG_CONFIG_HOME="$fixture_dir/config"
+          for language in en zh_CN; do
+            for page in overview apps files cache explorer duplicates developer; do
+              QT_QPA_PLATFORM=offscreen timeout 120s disklens --language "$language" --font-size 13 \
+                --smoke-test --scan-path "$fixture_dir" --page "$page"
+            done
+          done
+          for page in overview cache explorer developer; do
+            QT_QPA_PLATFORM=offscreen timeout 120s disklens --language en --font-size 18 \
+              --smoke-test --scan-path "$fixture_dir" --page "$page"
           done
 
       - name: Upload native package

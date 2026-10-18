@@ -32,10 +32,14 @@ xmllint --noout "$work_dir/usr/share/metainfo/io.github.broruan.DiskLens.metainf
 )
 dependencies="$(dpkg-deb --field "$package_path" Depends)"
 [[ "$dependencies" =~ (^|,\ )pkexec(,|\ |$) ]] || { echo 'Missing pkexec dependency.' >&2; exit 1; }
+case "$dependencies" in
+    *qttranslations5-l10n*|*qt6-translations-l10n*) ;;
+    *) echo 'Missing Qt standard-dialog translation dependency.' >&2; exit 1 ;;
+esac
 if ldd "$work_dir/usr/bin/disklens" | grep -q 'not found'; then
     echo 'Unresolved runtime library dependency.' >&2; exit 1
 fi
-actual_version="$(QT_QPA_PLATFORM=offscreen "$work_dir/usr/bin/disklens" --version)"
+actual_version="$(QT_QPA_PLATFORM=offscreen "$work_dir/usr/bin/disklens" --language en --font-size 18 --version)"
 [[ "$actual_version" == "DiskLens $package_version" ]] || {
     echo "Version mismatch: expected DiskLens $package_version, got $actual_version" >&2; exit 1;
 }

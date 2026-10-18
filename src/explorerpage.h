@@ -32,7 +32,12 @@ public:
     bool isSettled() const;
     bool verifyUi(QString *error);
     void showDuplicates();
-    void startDuplicateScan();
+    void startDuplicateScan(bool activateTab = true);
+    // Preserve an explicit hashing request across an appearance rebuild. Merely
+    // opening the duplicate tab does not opt in; cancellation or a new root clears it.
+    bool duplicateScanRequested() const;
+    quint64 duplicateMinimum() const;
+    void setDuplicateMinimum(quint64 bytes);
     // Exports the active tab, including its scope/completeness and scan totals.
     // This writes only the user-selected report; scanned files are never edited.
     bool exportReport(const QString &path, QString *error = nullptr) const;
@@ -67,6 +72,8 @@ private:
     bool m_shuttingDown = false;
     bool m_pendingScan = false;
     bool m_pendingDuplicates = false;
+    bool m_pendingDuplicateActivation = true;
+    bool m_duplicatesRequested = false;
     quint64 m_operation = 0;
     quint64 m_duplicateMinimum = 0;
 

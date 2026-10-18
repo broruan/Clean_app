@@ -6,7 +6,7 @@ Security reports are most useful against the latest published version, with the 
 
 ### Reporting a vulnerability
 
-If the repository has GitHub private vulnerability reporting enabled, use **Security → Report a vulnerability** on [this repository](https://github.com/broruan/Clean_app/security). Please use a disposable directory or virtual machine and provide the smallest reproducer possible.
+If the repository has GitHub private vulnerability reporting enabled, use **Security → Report a vulnerability** on [this repository](https://github.com/broruan/DiskLens/security). Please use a disposable directory or virtual machine and provide the smallest reproducer possible.
 
 If private reporting is unavailable, open a minimal issue requesting a private reporting channel. Do not publish exploit details, sensitive paths, or a working destructive payload in that initial issue. Ordinary reproducible UI bugs can use the public bug-report template.
 
@@ -28,7 +28,7 @@ Unexpected file access outside configured roots, bypass of protected-package che
 
 ### 报告漏洞
 
-如果仓库启用了 GitHub 私密漏洞报告，请在 [仓库 Security 页面](https://github.com/broruan/Clean_app/security) 选择 **Report a vulnerability**。请使用可丢弃目录或虚拟机，提供尽可能小的复现样例。
+如果仓库启用了 GitHub 私密漏洞报告，请在 [仓库 Security 页面](https://github.com/broruan/DiskLens/security) 选择 **Report a vulnerability**。请使用可丢弃目录或虚拟机，提供尽可能小的复现样例。
 
 若无法私密报告，请先提交不含敏感细节的简短 issue，请求私密联系渠道；不要在初始 issue 中公开利用细节、敏感路径或可直接执行的破坏性载荷。普通界面问题可使用公开 bug 模板。
 

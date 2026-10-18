@@ -5,6 +5,7 @@
 
 QIcon lineIcon(const QString &name, const QColor &color = QColor("#7a87a0"));
 QString applicationStyle();
+int scaledUiPixels(int pixels);
 
 class DiskRing : public QWidget {
 public:

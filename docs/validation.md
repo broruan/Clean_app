@@ -1,12 +1,18 @@
 # Validation scope / 验证范围
 
-[Build instructions](building.md) · [CI runs](https://github.com/broruan/Clean_app/actions/workflows/build.yml)
+[Build instructions](building.md) · [CI runs](https://github.com/broruan/DiskLens/actions/workflows/build.yml)
+
+## Version 1.3.0 / 版本 1.3.0
+
+Version 1.3.0 adds in-app English / Simplified Chinese switching, persistent font size preferences and session-only command-line overrides. Its targeted checks cover translation completeness and placeholders, preference persistence, production-style font scaling, visible language settings and safe appearance-change boundaries. The full suite now contains 13 CTest targets. Local Ubuntu 22.04 amd64 / Qt 5.15.3 checks passed all 13 targets, compiled translation coverage for 540 messages, and all seven pages in Chinese 13 px, English 13 px and English 18 px with isolated fixtures. Results for the exact 1.3.0 tag and its six native package jobs will be recorded after those checks complete; the 1.2.0 results below are historical evidence.
+
+1.3.0 新增应用内中英文切换、字体大小偏好保存与仅本次启动的命令行覆盖。针对性检查覆盖译文完整性与占位符、偏好持久化、正式样式字体缩放、可见语言设置入口，以及外观切换的操作边界；完整测试现为 13 个 CTest 目标。本机 Ubuntu 22.04 amd64 / Qt 5.15.3 已通过全部 13 项、540 条编译译文检查，以及隔离样例下七类页面的中文 13 px、英文 13 px、英文 18 px 检查。对应 1.3.0 标签与六个原生安装包任务完成后将补充实际结果；下方 1.2.0 记录保留为历史证据。
 
 ## Version 1.2.0 / 版本 1.2.0
 
-[Release CI #6](https://github.com/broruan/Clean_app/actions/runs/39090501349) passed on 2026-10-18 for tag `v1.2.0`, commit `ab2ade5`. **All six combinations passed**: Ubuntu 22.04, 24.04 and 26.04, each on amd64 and arm64. Each job ran all 11 CTest targets, verified and installed its DEB, and ran installed-app read-only smoke checks for overview, explorer, duplicates and developer pages. The release job published six DEBs and `SHA256SUMS`; all six published downloads were independently checked against their SHA-256 values and version/architecture metadata.
+[Release CI #6](https://github.com/broruan/DiskLens/actions/runs/39090501349) passed on 2026-10-18 for tag `v1.2.0`, commit `ab2ade5`. **All six combinations passed**: Ubuntu 22.04, 24.04 and 26.04, each on amd64 and arm64. Each job ran all 11 CTest targets, verified and installed its DEB, and ran installed-app read-only smoke checks for overview, explorer, duplicates and developer pages. The release job published six DEBs and `SHA256SUMS`; all six published downloads were independently checked against their SHA-256 values and version/architecture metadata.
 
-2026-10-18，[正式发布 CI #6](https://github.com/broruan/Clean_app/actions/runs/39090501349) 在标签 `v1.2.0`、提交 `ab2ade5` 上通过。Ubuntu 22.04、24.04、26.04 的 amd64 与 arm64 **六个组合全部通过**：各自完成 11 个 CTest 目标、DEB 检查、安装及四类新旧页面的安装后只读检查。发布任务生成六个安装包和校验文件；发布后重新下载六个包，SHA-256 与版本、架构元数据均验证正确。
+2026-10-18，[正式发布 CI #6](https://github.com/broruan/DiskLens/actions/runs/39090501349) 在标签 `v1.2.0`、提交 `ab2ade5` 上通过。Ubuntu 22.04、24.04、26.04 的 amd64 与 arm64 **六个组合全部通过**：各自完成 11 个 CTest 目标、DEB 检查、安装及四类新旧页面的安装后只读检查。发布任务生成六个安装包和校验文件；发布后重新下载六个包，SHA-256 与版本、架构元数据均验证正确。
 
 Local Ubuntu 22.04 amd64 / Qt 5.15.3: all **11 CTest targets** passed, and the updated application passed read-only smoke checks for overview, cache, explorer, duplicates and developer pages using disposable fixtures. The previous 1.1.2 evidence below remains historical.
 
@@ -14,9 +20,9 @@ Local Ubuntu 22.04 amd64 / Qt 5.15.3: all **11 CTest targets** passed, and the u
 
 ## Release v1.1.2 / 已验证发布
 
-On 2026-10-18, [release CI run #5](https://github.com/broruan/Clean_app/actions/runs/39088717438) completed successfully for tag [`v1.1.2`](https://github.com/broruan/Clean_app/tree/v1.1.2), commit `eb7fa7a`. All six native jobs completed compilation, all five CTest targets, DEB verification, package installation, and a read-only offscreen smoke check. Release assets were downloaded again and all six DEBs matched `SHA256SUMS`.
+On 2026-10-18, [release CI run #5](https://github.com/broruan/DiskLens/actions/runs/39088717438) completed successfully for tag [`v1.1.2`](https://github.com/broruan/DiskLens/tree/v1.1.2), commit `eb7fa7a`. All six native jobs completed compilation, all five CTest targets, DEB verification, package installation, and a read-only offscreen smoke check. Release assets were downloaded again and all six DEBs matched `SHA256SUMS`.
 
-2026-10-18，[正式发布 CI #5](https://github.com/broruan/Clean_app/actions/runs/39088717438) 在标签 `v1.1.2`、提交 `eb7fa7a` 上全部通过。六个原生任务均完成编译、五个 CTest 目标、DEB 检查、安装包安装与离屏只读界面检查；发布后重新下载六个 DEB，全部通过 `SHA256SUMS` 校验。
+2026-10-18，[正式发布 CI #5](https://github.com/broruan/DiskLens/actions/runs/39088717438) 在标签 `v1.1.2`、提交 `eb7fa7a` 上全部通过。六个原生任务均完成编译、五个 CTest 目标、DEB 检查、安装包安装与离屏只读界面检查；发布后重新下载六个 DEB，全部通过 `SHA256SUMS` 校验。
 
 | Ubuntu | amd64 | arm64 |
 | --- | --- | --- |
@@ -46,6 +52,7 @@ For version 1.1.2 on Ubuntu 22.04 `amd64` with Qt 5, a fresh release build passe
 | `spaceanalyzer` / `explorerpage` | Directory aggregation and navigation, complete duplicate verification beyond matching samples, changing-file rejection, resource limits, cancellation, reports and production-style interaction. |
 | `developer` / `developerpage` | Structural classification, raw-data descriptions, nested/hard-link accounting, partial reports and production-style filtering/selection. |
 | `appstorage` / `appstoragedialog` | Exact namespaces/catalog, separately measured data, unknown association and styled read-only inspection. |
+| `appearance` / `localization` | Language resources and placeholder integrity, saved preferences, font scaling and production-style appearance controls. See the exact release run for completion and skips. |
 | Package checks | Debian metadata, declared architecture, bundled executable / desktop entry / icon, generated dependency declarations, and artifact naming. |
 | CI package installation and smoke | Installation in the CI environment followed by a read-only offscreen UI check over a temporary directory. |
 
@@ -81,6 +88,7 @@ Include the release tag or commit, Ubuntu version, architecture, Qt version, exa
 | `spaceanalyzer` / `explorerpage` | 目录累加与逐层导航、采样碰撞后的完整哈希、变化文件排除、上限、取消、报告及正式样式交互。 |
 | `developer` / `developerpage` | 结构分类、原始数据说明、嵌套与硬链接计量、部分报告及正式样式筛选选择。 |
 | `appstorage` / `appstoragedialog` | 精确命名空间和目录规则、独立计量、未知关联说明及只读界面。 |
+| `appearance` / `localization` | 语言资源与占位符完整性、偏好保存、字体缩放及正式样式外观控件；完成结果与跳过项以对应发布记录为准。 |
 | 安装包检查 | Debian 元数据、架构、可执行文件、桌面入口、图标、依赖声明与产物命名。 |
 | CI 安装与只读界面检查 | 在 CI 环境安装生成包，再对临时目录运行离屏只读检查。 |
 

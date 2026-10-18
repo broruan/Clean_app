@@ -7,21 +7,21 @@
 
 <div align="center">
 
-[![Build](https://github.com/broruan/Clean_app/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/broruan/Clean_app/actions/workflows/build.yml)
-[![Release](https://img.shields.io/github/v/release/broruan/Clean_app?color=0f766e&display_name=tag&cacheSeconds=300)](https://github.com/broruan/Clean_app/releases/latest)
+[![Build](https://github.com/broruan/DiskLens/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/broruan/DiskLens/actions/workflows/build.yml)
+[![Release](https://img.shields.io/github/v/release/broruan/DiskLens?color=0f766e&display_name=tag&cacheSeconds=300)](https://github.com/broruan/DiskLens/releases/latest)
 [![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Ubuntu](https://img.shields.io/badge/Ubuntu-22.04%20%7C%2024.04%20%7C%2026.04-E95420?logo=ubuntu&logoColor=white)](#ubuntu-packages)
 [![Architecture](https://img.shields.io/badge/64--bit-amd64%20%7C%20arm64-334155)](#ubuntu-packages)
 
 **English** · [简体中文](README.zh-CN.md)
 
-[Download](https://github.com/broruan/Clean_app/releases/latest) · [User guide](docs/usage.md) · [Build from source](docs/building.md) · [Report an issue](https://github.com/broruan/Clean_app/issues/new/choose)
+[Download](https://github.com/broruan/DiskLens/releases/latest) · [User guide](docs/usage.md) · [Build from source](docs/building.md) · [Report an issue](https://github.com/broruan/DiskLens/issues/new/choose)
 
 </div>
 
-![DiskLens storage overview](docs/images/overview.png)
+![DiskLens English storage overview](docs/images/overview-en.png)
 
-DiskLens is a Qt Widgets desktop application written in C++17. It reads your machine's filesystem and package-manager data locally. **The application interface is currently Simplified Chinese**; project documentation is available in English and Chinese. Screenshots show the real application with example scan data; installed-package information is read from the machine used to capture them.
+DiskLens is a Qt Widgets desktop application written in C++17. It reads your machine's filesystem and package-manager data locally. **Switch between English and Simplified Chinese in the application and adjust the interface font size.** Project documentation is also available in both languages. Screenshots show the real application with example scan data; installed-package information is read from the machine used to capture them.
 
 ## Why DiskLens
 
@@ -33,23 +33,23 @@ DiskLens is a Qt Widgets desktop application written in C++17. It reads your mac
 
 | View | Capabilities |
 | --- | --- |
-| **Storage overview** | Switch mounted volumes, inspect used / available / reserved space, and see application and large-file summaries. |
-| **Installed applications** | Browse DEB, Snap, and Flatpak inventory; filter desktop apps or all packages; search and sort by size. |
+| **Overview** | Switch mounted volumes, inspect used / available / reserved space, and see application and large-file summaries. |
+| **Installed apps** | Browse DEB, Snap, and Flatpak inventory; filter desktop apps or all packages; search and sort by size. |
 | **Uninstall preview** | Review proposed removal, including APT dependency changes, before confirming through the system authorization dialog. |
 | **Large files** | Scan a directory in the background, choose a size threshold, inspect the largest 500 files, copy a path, or open its folder. |
-| **Directory explorer** | Drill down through a size-sorted directory tree and clickable allocation chart; compare logical and allocated sizes. |
+| **Space explorer** | Drill down through a size-sorted directory tree and clickable allocation chart; compare logical and allocated sizes. |
 | **Duplicate files** | Explicit size → sample → complete SHA-256 matching, grouped paths and CSV reports, without deleting files. |
-| **Developer environment** | Recognize colcon outputs, ROS recordings, point clouds, pip/npm/ccache caches and Conda environments; explain evidence and rebuildability. |
+| **Developer tools** | Recognize colcon outputs, ROS recordings, point clouds, pip/npm/ccache caches and Conda environments; explain evidence and rebuildability. |
 | **Application storage** | Associate known DEB application paths and exact Snap/Flatpak namespaces with package entries; inspect user data separately from package estimates. |
-| **Caches & logs** | Review per-application cache and log usage, filter the list, select specific groups, and confirm their deletion. |
+| **Cache & logs** | Review per-application cache and log usage, filter the list, select specific groups, and confirm their deletion. |
 
 Scans include hidden files, skip symlinks and special files, stay within the selected mount, and deduplicate hard links. The large-file view is read-only. Caches and logs are the only file-cleanup feature.
 
-![DiskLens cache and log selection](docs/images/cache.png)
+![DiskLens cache and log selection](docs/images/cache-en.png)
 
-![Interactive directory analysis](docs/images/explorer.png)
+![Interactive directory analysis](docs/images/explorer-en.png)
 
-![Developer environment storage](docs/images/developer.png)
+![Developer environment storage](docs/images/developer-en.png)
 
 Version 1.2 adds read-only analysis tools. Directory and developer scans begin when their pages are opened; duplicate hashing requires an explicit request and reads candidate file contents. Reports preserve scan scope and partial-result information. See [analysis tools](docs/analysis-tools.md) for workflows, attribution rules, limits and accounting.
 
@@ -59,9 +59,9 @@ The release pipeline targets these **64-bit** Ubuntu combinations, with a separa
 
 | Ubuntu | x86-64 / Intel & AMD (`amd64`) | ARM64 / AArch64 (`arm64`) |
 | --- | --- | --- |
-| 22.04 | `disklens_1.2.0_ubuntu22.04_amd64.deb` | `disklens_1.2.0_ubuntu22.04_arm64.deb` |
-| 24.04 | `disklens_1.2.0_ubuntu24.04_amd64.deb` | `disklens_1.2.0_ubuntu24.04_arm64.deb` |
-| 26.04 | `disklens_1.2.0_ubuntu26.04_amd64.deb` | `disklens_1.2.0_ubuntu26.04_arm64.deb` |
+| 22.04 | `disklens_1.3.0_ubuntu22.04_amd64.deb` | `disklens_1.3.0_ubuntu22.04_arm64.deb` |
+| 24.04 | `disklens_1.3.0_ubuntu24.04_amd64.deb` | `disklens_1.3.0_ubuntu24.04_arm64.deb` |
+| 26.04 | `disklens_1.3.0_ubuntu26.04_amd64.deb` | `disklens_1.3.0_ubuntu26.04_arm64.deb` |
 
 Use the package matching **both** your Ubuntu release and CPU architecture. `x86_64` maps to Debian's `amd64`; `aarch64` maps to `arm64`. 32-bit x86 and ARM packages are not provided. Other distributions are outside the packaged support matrix.
 
@@ -73,11 +73,11 @@ printf 'Ubuntu release: %s\n' "$VERSION_ID"
 dpkg --print-architecture
 ```
 
-Download the matching package from [Releases](https://github.com/broruan/Clean_app/releases/latest), then install it. For example, on Ubuntu 24.04 x86-64:
+Download the matching package from [Releases](https://github.com/broruan/DiskLens/releases/latest), then install it. For example, on Ubuntu 24.04 x86-64:
 
 ```bash
 cd ~/Downloads
-sudo apt install ./disklens_1.2.0_ubuntu24.04_amd64.deb
+sudo apt install ./disklens_1.3.0_ubuntu24.04_amd64.deb
 disklens
 ```
 
@@ -91,11 +91,19 @@ sha256sum --ignore-missing --check SHA256SUMS
 
 The release workflow builds and tests the matrix before publishing packages. CI results describe build, automated test, and package checks; desktop authorization, real package removal, and every physical ARM/x86 desktop are separate validation tasks. See the [validation scope](docs/validation.md) and the linked release's workflow run for evidence.
 
+## Appearance
+
+Open **Language & font** at the bottom of the sidebar. Choose **English** or **简体中文**, then select a size from **11–18 px (default: 13 px)** and apply. Changes take effect immediately and are saved for the next launch. Your page, scan directories and window position are retained; read-only scans restart and pending selections are cleared. Settings are unavailable during cleanup, package operations or another open dialog.
+
+![DiskLens language and font settings](docs/images/appearance-en.png)
+
+For a one-session override, use `disklens --language en --font-size 15`. Command-line overrides are not saved; `--language` accepts `en` or `zh_CN`, and `--font-size` accepts 11–18 px.
+
 ## Start with inspection
 
-1. Open **空间总览** (Storage overview) and choose a volume. A read-only home-directory scan starts in the background.
-2. Use **已安装软件** (Installed applications) or **大文件** (Large files) to find where space is used.
-3. Open **缓存与日志** (Caches & logs), review the paths, and select only the groups you intend to remove.
+1. Open **Overview** and choose a volume. A read-only home-directory scan starts in the background.
+2. Use **Installed apps** or **Large files** to find where space is used.
+3. Open **Cache & logs**, review the paths, and select only the groups you intend to remove.
 4. Read the confirmation dialog before cleaning or uninstalling. Close the relevant applications first when cleaning caches.
 
 **Cache cleanup permanently deletes selected files; it does not use the trash.** Cancellation stops subsequent deletions and cannot restore files already removed. Cache files may be recreated or require downloads. Default cleanup roots are `~/.cache` and log files under `~/.local/state`, respecting absolute `XDG_CACHE_HOME` / `XDG_STATE_HOME` overrides. DiskLens does not request administrator privileges for cache cleanup.
@@ -108,9 +116,9 @@ On the corresponding Ubuntu release:
 
 ```bash
 sudo apt update
-sudo apt install build-essential cmake pkg-config qtbase5-dev libqt5svg5 fonts-noto-cjk dpkg-dev pkexec xdg-utils baobab
-git clone https://github.com/broruan/Clean_app.git
-cd Clean_app
+sudo apt install build-essential cmake pkg-config qtbase5-dev libqt5svg5 qttranslations5-l10n fonts-noto-cjk dpkg-dev pkexec xdg-utils baobab
+git clone https://github.com/broruan/DiskLens.git
+cd DiskLens
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DDISKLENS_QT_MAJOR=5
 cmake --build build --parallel 2
 ctest --test-dir build --output-on-failure

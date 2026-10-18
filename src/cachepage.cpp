@@ -1,3 +1,4 @@
+#include "localization.h"
 #include "cachepage.h"
 
 #include "models.h"
@@ -107,11 +108,11 @@ public:
             return isChecked(index.row()) ? Qt::Checked : Qt::Unchecked;
         if (role == Qt::ToolTipRole) {
             return item->name + QLatin1Char('\n') + item->path
-                + QStringLiteral("\n%1 · %2 个文件 · 实际占用 %3\n%4")
-                      .arg(item->logOnly ? QStringLiteral("仅日志") : QStringLiteral("普通缓存"))
+                + dlTr("\n%1 · %2 个文件 · 实际占用 %3\n%4")
+                      .arg(item->logOnly ? dlTr("仅日志") : dlTr("普通缓存"))
                       .arg(item->fileCount).arg(formatBytes(item->allocatedBytes))
-                      .arg(item->logOnly ? QStringLiteral("仅清理已扫描的日志文件；同目录的普通文件会保留。")
-                                         : QStringLiteral("仅清理已扫描的普通缓存；日志独立列出。"));
+                      .arg(item->logOnly ? dlTr("仅清理已扫描的日志文件；同目录的普通文件会保留。")
+                                         : dlTr("仅清理已扫描的普通缓存；日志独立列出。"));
         }
         if (role == cacheSortRole) {
             switch (index.column()) {
@@ -128,7 +129,7 @@ public:
         if (role == Qt::DisplayRole) {
             switch (index.column()) {
             case 1: return item->name;
-            case 2: return item->logOnly ? QStringLiteral("日志") : QStringLiteral("缓存");
+            case 2: return item->logOnly ? dlTr("日志") : dlTr("缓存");
             case 3: return QStringLiteral("%1 / %2").arg(countText(item->fileCount), countText(item->logCount));
             case 4: return formatBytes(item->bytes);
             case 5: return formatBytes(item->allocatedBytes);
@@ -143,8 +144,8 @@ public:
     {
         if (orientation != Qt::Horizontal || role != Qt::DisplayRole)
             return {};
-        const QStringList labels{QString(), QStringLiteral("应用 / 缓存目录"), QStringLiteral("分类"),
-                                 QStringLiteral("文件 / 日志"), QStringLiteral("逻辑大小"), QStringLiteral("实际占用")};
+        const QStringList labels{QString(), dlTr("应用 / 缓存目录"), dlTr("分类"),
+                                 dlTr("文件 / 日志"), dlTr("逻辑大小"), dlTr("实际占用")};
         return labels.value(section);
     }
 
@@ -327,13 +328,14 @@ public:
         nameFont.setBold(true);
         painter->setFont(nameFont);
         painter->setPen(QColor("#34415c"));
-        painter->drawText(QRect(area.left(), area.top(), area.width(), 24), Qt::AlignVCenter,
+        painter->drawText(QRect(area.left(), area.top(), area.width(), scaledUiPixels(24)), Qt::AlignVCenter,
                           QFontMetrics(nameFont).elidedText(index.data().toString(), Qt::ElideRight, area.width()));
         QFont pathFont = option.font;
-        pathFont.setPointSizeF(qMax(8.0, pathFont.pointSizeF() - 1));
+        if (pathFont.pixelSize() > 0) pathFont.setPixelSize(qMax(8, pathFont.pixelSize() - 1));
+        else pathFont.setPointSizeF(qMax(8.0, pathFont.pointSizeF() - 1));
         painter->setFont(pathFont);
         painter->setPen(QColor("#8c96aa"));
-        painter->drawText(QRect(area.left(), area.top() + 25, area.width(), 20), Qt::AlignVCenter,
+        painter->drawText(QRect(area.left(), area.top() + scaledUiPixels(25), area.width(), scaledUiPixels(20)), Qt::AlignVCenter,
                           QFontMetrics(pathFont).elidedText(index.data(Qt::UserRole).toString(), Qt::ElideMiddle, area.width()));
         painter->restore();
     }
@@ -415,14 +417,14 @@ void CachePage::createUi()
         box->addWidget(plainLabel(title, "muted"));
         *value = plainLabel(QStringLiteral("—"), name);
         (*value)->setStyleSheet(QStringLiteral("font-size:27px;font-weight:700;color:#263551;"));
-        *summary = plainLabel(QStringLiteral("尚未扫描"), "muted");
+        *summary = plainLabel(dlTr("尚未扫描"), "muted");
         box->addWidget(*value);
         box->addWidget(*summary);
         metrics->addWidget(frame, 1);
     };
-    addMetric(QStringLiteral("已扫描的实际占用"), "cacheTotalBytes", &m_totalSize, &m_totalSummary);
-    addMetric(QStringLiteral("普通缓存"), "cacheOrdinaryBytes", &m_cacheSize, &m_cacheSummary);
-    addMetric(QStringLiteral("用户日志"), "cacheLogBytes", &m_logSize, &m_logSummary);
+    addMetric(dlTr("已扫描的实际占用"), "cacheTotalBytes", &m_totalSize, &m_totalSummary);
+    addMetric(dlTr("普通缓存"), "cacheOrdinaryBytes", &m_cacheSize, &m_cacheSummary);
+    addMetric(dlTr("用户日志"), "cacheLogBytes", &m_logSize, &m_logSummary);
     layout->addLayout(metrics);
 
     m_scope = plainLabel({}, "cacheScope");
@@ -439,26 +441,26 @@ void CachePage::createUi()
     toolbar->setSpacing(10);
     m_search = new QLineEdit;
     m_search->setObjectName(QStringLiteral("cacheSearch"));
-    m_search->setPlaceholderText(QStringLiteral("搜索应用名称或缓存路径"));
+    m_search->setPlaceholderText(dlTr("搜索应用名称或缓存路径"));
     m_search->addAction(lineIcon("search"), QLineEdit::LeadingPosition);
     toolbar->addWidget(m_search, 1);
-    m_largeOnly = new QCheckBox(QStringLiteral("实际占用 > 100 MiB"));
+    m_largeOnly = new QCheckBox(dlTr("实际占用 > 100 MiB"));
     m_largeOnly->setObjectName(QStringLiteral("cacheLargeOnly"));
-    m_logsOnly = new QCheckBox(QStringLiteral("只看日志"));
+    m_logsOnly = new QCheckBox(dlTr("只看日志"));
     m_logsOnly->setObjectName(QStringLiteral("cacheLogsOnly"));
     toolbar->addWidget(m_largeOnly);
     toolbar->addWidget(m_logsOnly);
-    m_scan = cacheButton(QStringLiteral("扫描缓存"), "cacheScan", "refresh");
+    m_scan = cacheButton(dlTr("扫描缓存"), "cacheScan", "refresh");
     toolbar->addWidget(m_scan);
-    m_cancelButton = cacheButton(QStringLiteral("取消扫描"), "cacheCancel", "stop");
+    m_cancelButton = cacheButton(dlTr("取消扫描"), "cacheCancel", "stop");
     toolbar->addWidget(m_cancelButton);
     panelLayout->addLayout(toolbar);
 
     auto *selectionRow = new QHBoxLayout;
     selectionRow->setContentsMargins(18, 0, 18, 12);
     selectionRow->setSpacing(10);
-    m_selectVisible = cacheButton(QStringLiteral("全选当前筛选"), "cacheSelectVisible");
-    m_clearSelection = cacheButton(QStringLiteral("清空选择"), "cacheClearSelection");
+    m_selectVisible = cacheButton(dlTr("全选当前筛选"), "cacheSelectVisible");
+    m_clearSelection = cacheButton(dlTr("清空选择"), "cacheClearSelection");
     selectionRow->addWidget(m_selectVisible);
     selectionRow->addWidget(m_clearSelection);
     m_count = plainLabel({}, "cacheCount");
@@ -507,12 +509,12 @@ void CachePage::createUi()
 
     auto *details = new QHBoxLayout;
     details->setContentsMargins(18, 12, 18, 12);
-    m_detail = plainLabel(QStringLiteral("点击行或复选框勾选，再次点击取消；空格键也可切换。"), "cacheDetail");
+    m_detail = plainLabel(dlTr("点击行或复选框勾选，再次点击取消；空格键也可切换。"), "cacheDetail");
     m_detail->setStyleSheet(QStringLiteral("color:#8993a7;font-size:11px;"));
     m_detail->setSizePolicy(QSizePolicy::Expanding, QSizePolicy::Preferred);
     details->addWidget(m_detail, 1);
-    m_open = cacheButton(QStringLiteral("打开目录"), "cacheOpenDirectory", "folder");
-    m_copy = cacheButton(QStringLiteral("复制路径"), "cacheCopyPath", "copy");
+    m_open = cacheButton(dlTr("打开目录"), "cacheOpenDirectory", "folder");
+    m_copy = cacheButton(dlTr("复制路径"), "cacheCopyPath", "copy");
     details->addWidget(m_open);
     details->addWidget(m_copy);
     panelLayout->addLayout(details);
@@ -535,15 +537,15 @@ void CachePage::createUi()
     statusBox->setSpacing(4);
     m_selection = plainLabel({}, "cacheSelectionSummary");
     m_selection->setStyleSheet(QStringLiteral("font-weight:600;color:#42516e;"));
-    m_status = plainLabel(QStringLiteral("尚未扫描 · 默认不选择任何目录"), "cacheStatus");
+    m_status = plainLabel(dlTr("尚未扫描 · 默认不选择任何目录"), "cacheStatus");
     m_status->setStyleSheet(QStringLiteral("color:#8993a7;font-size:11px;"));
     statusBox->addWidget(m_selection);
     statusBox->addWidget(m_status);
     footer->addLayout(statusBox, 1);
-    m_notes = cacheButton(QStringLiteral("扫描提示"), "cacheNotes");
+    m_notes = cacheButton(dlTr("扫描提示"), "cacheNotes");
     m_notes->hide();
     footer->addWidget(m_notes);
-    m_clean = cacheButton(QStringLiteral("一键清理所选"), "cacheClean", "trash");
+    m_clean = cacheButton(dlTr("一键清理所选"), "cacheClean", "trash");
     m_clean->setStyleSheet(QStringLiteral(
         "QPushButton{color:#cd5263;border-color:#edcbd0;background:#fff8f9;font-weight:600;padding:11px 18px;}"
         "QPushButton:hover{background:#ffecef;}"
@@ -567,8 +569,8 @@ void CachePage::createUi()
             const QFileInfo selected(entry->path);
             const QString directory = selected.isDir() ? selected.absoluteFilePath() : selected.absolutePath();
             if (!QFileInfo(directory).isDir() || !QDesktopServices::openUrl(QUrl::fromLocalFile(directory))) {
-                QMessageBox message(QMessageBox::Warning, QStringLiteral("无法打开目录"),
-                                    QStringLiteral("目录可能已被移动，或系统未配置文件管理器。\n") + directory,
+                QMessageBox message(QMessageBox::Warning, dlTr("无法打开目录"),
+                                    dlTr("目录可能已被移动，或系统未配置文件管理器。\n") + directory,
                                     QMessageBox::Ok, this);
                 message.setTextFormat(Qt::PlainText);
                 message.exec();
@@ -585,12 +587,12 @@ void CachePage::createUi()
 
 void CachePage::updateScope()
 {
-    const QString state = m_stateRoot.isEmpty() ? QStringLiteral("用户状态日志已禁用")
-        : m_stateRoot + QStringLiteral("（仅 logs 目录 / .log 日志）");
-    const QString text = QStringLiteral("当前用户范围：%1（缓存与日志）；%2。直接删除文件，不进入回收站；不清理系统日志。")
-                             .arg(m_cacheRoot.isEmpty() ? QStringLiteral("未指定缓存目录") : m_cacheRoot, state);
+    const QString state = m_stateRoot.isEmpty() ? dlTr("用户状态日志已禁用")
+        : m_stateRoot + dlTr("（仅 logs 目录 / .log 日志）");
+    const QString text = dlTr("当前用户范围：%1（缓存与日志）；%2。直接删除文件，不进入回收站；不清理系统日志。")
+                             .arg(m_cacheRoot.isEmpty() ? dlTr("未指定缓存目录") : m_cacheRoot, state);
     m_scope->setText(text);
-    m_scope->setToolTip(text + QStringLiteral("\n实际占用为普通文件的磁盘分配空间；符号链接、其他用户文件等不在清理范围。"));
+    m_scope->setToolTip(text + dlTr("\n实际占用为普通文件的磁盘分配空间；符号链接、其他用户文件等不在清理范围。"));
 }
 
 CacheProgress CachePage::progressHandler(quint64 operation, bool cleaning)
@@ -600,8 +602,8 @@ CacheProgress CachePage::progressHandler(quint64 operation, bool cleaning)
             if (m_shuttingDown || operation != m_operation || !isBusy() || m_cancel.load())
                 return;
             const QString shownPath = QFontMetrics(font()).elidedText(path, Qt::ElideMiddle, qMax(150, m_status->width() - 200));
-            m_status->setText(QStringLiteral("%1 %2 个文件 · %3")
-                                  .arg(cleaning ? QStringLiteral("正在处理") : QStringLiteral("已扫描"))
+            m_status->setText(dlTr("%1 %2 个文件 · %3")
+                                  .arg(cleaning ? dlTr("正在处理") : dlTr("已扫描"))
                                   .arg(countText(count), shownPath));
             m_status->setToolTip(path);
         }, Qt::QueuedConnection);
@@ -619,7 +621,7 @@ void CachePage::startScan()
     m_model->clearChecked();
     m_scanNotice->hide();
     m_notes->hide();
-    m_status->setText(QStringLiteral("正在只读扫描当前用户缓存与日志…"));
+    m_status->setText(dlTr("正在只读扫描当前用户缓存与日志…"));
     const QString cacheRoot = m_cacheRoot;
     const QString stateRoot = m_stateRoot;
     const CacheProgress progress = progressHandler(++m_operation, false);
@@ -641,22 +643,22 @@ void CachePage::scanFinished()
     m_table->clearSelection();
     m_table->setCurrentIndex({});
     updateMetrics();
-    QString partial = QStringLiteral("扫描完成");
+    QString partial = dlTr("扫描完成");
     if (m_scanResult.canceled)
-        partial = QStringLiteral("扫描已取消 · 以下为部分结果，可重新扫描补全");
+        partial = dlTr("扫描已取消 · 以下为部分结果，可重新扫描补全");
     else if (!m_scanResult.error.isEmpty())
-        partial = m_scanResult.entries.isEmpty() ? QStringLiteral("扫描失败")
-                                                : QStringLiteral("扫描未完成 · 以下为部分结果");
-    m_status->setText(QStringLiteral("%1 · 已扫描 %2 个文件 · 跳过 %3 项")
+        partial = m_scanResult.entries.isEmpty() ? dlTr("扫描失败")
+                                                : dlTr("扫描未完成 · 以下为部分结果");
+    m_status->setText(dlTr("%1 · 已扫描 %2 个文件 · 跳过 %3 项")
                           .arg(partial, countText(m_scanResult.scannedFiles), countText(m_scanResult.skippedEntries)));
     m_status->setToolTip({});
     QStringList notes = m_scanResult.warnings;
     if (!m_scanResult.error.isEmpty())
         notes.prepend(m_scanResult.error);
     if (m_scanResult.canceled)
-        notes.prepend(QStringLiteral("扫描已取消，统计和清理范围仅覆盖本次已扫描到的文件。"));
+        notes.prepend(dlTr("扫描已取消，统计和清理范围仅覆盖本次已扫描到的文件。"));
     if (!notes.isEmpty()) {
-        m_scanNotice->setText(notes.first() + (notes.size() > 1 ? QStringLiteral(" · 另有 %1 条提示").arg(notes.size() - 1) : QString()));
+        m_scanNotice->setText(notes.first() + (notes.size() > 1 ? dlTr(" · 另有 %1 条提示").arg(notes.size() - 1) : QString()));
         m_scanNotice->setToolTip(notes.join(QLatin1Char('\n')));
         m_scanNotice->show();
         m_notes->show();
@@ -681,28 +683,28 @@ void CachePage::updateMetrics()
         }
     }
     const bool known = m_scanDone && (m_scanResult.error.isEmpty() || !m_scanResult.entries.isEmpty());
-    const QString partial = m_scanResult.canceled || !m_scanResult.error.isEmpty() ? QStringLiteral(" · 部分") : QString();
+    const QString partial = m_scanResult.canceled || !m_scanResult.error.isEmpty() ? dlTr(" · 部分") : QString();
     m_totalSize->setText(known ? formatBytes(total) : QStringLiteral("—"));
     m_cacheSize->setText(known ? formatBytes(caches) : QStringLiteral("—"));
     m_logSize->setText(known ? formatBytes(logs) : QStringLiteral("—"));
-    m_totalSummary->setText(known ? QStringLiteral("%1 组 · %2 个文件%3").arg(m_model->rowCount()).arg(countText(files), partial)
-                                : (m_scanDone ? QStringLiteral("扫描失败，未取得可用结果") : QStringLiteral("只读扫描后显示")));
-    m_cacheSummary->setText(known ? QStringLiteral("%1 个普通缓存文件%2").arg(countText(cacheFiles), partial)
-                                : (m_scanDone ? QStringLiteral("未取得可用结果") : QStringLiteral("不含独立列出的日志")));
-    m_logSummary->setText(known ? QStringLiteral("%1 个日志文件%2").arg(countText(logFiles), partial)
-                              : (m_scanDone ? QStringLiteral("未取得可用结果") : QStringLiteral("含缓存目录与用户状态日志")));
-    m_totalSize->setToolTip(QStringLiteral("已扫描文件的实际分配空间之和；不等于保证立即释放的磁盘空间。正在使用的文件可能仍被进程占用。"));
+    m_totalSummary->setText(known ? dlTr("%1 组 · %2 个文件%3").arg(m_model->rowCount()).arg(countText(files), partial)
+                                : (m_scanDone ? dlTr("扫描失败，未取得可用结果") : dlTr("只读扫描后显示")));
+    m_cacheSummary->setText(known ? dlTr("%1 个普通缓存文件%2").arg(countText(cacheFiles), partial)
+                                : (m_scanDone ? dlTr("未取得可用结果") : dlTr("不含独立列出的日志")));
+    m_logSummary->setText(known ? dlTr("%1 个日志文件%2").arg(countText(logFiles), partial)
+                              : (m_scanDone ? dlTr("未取得可用结果") : dlTr("含缓存目录与用户状态日志")));
+    m_totalSize->setToolTip(dlTr("已扫描文件的实际分配空间之和；不等于保证立即释放的磁盘空间。正在使用的文件可能仍被进程占用。"));
 }
 
 void CachePage::updateControls()
 {
     const bool busy = isBusy();
     m_scan->setEnabled(!busy);
-    m_scan->setText(m_started ? QStringLiteral("重新扫描") : QStringLiteral("扫描缓存"));
+    m_scan->setText(m_started ? dlTr("重新扫描") : dlTr("扫描缓存"));
     m_cancelButton->setVisible(m_scanning || m_cleaning);
     m_cancelButton->setEnabled((m_scanning || m_cleaning) && !m_cancel.load());
-    m_cancelButton->setText(m_cleaning ? QStringLiteral("停止后续删除") : QStringLiteral("取消扫描"));
-    m_cancelButton->setToolTip(m_cleaning ? QStringLiteral("只停止后续删除；已经删除的文件不能恢复。") : QStringLiteral("保留已扫描的部分结果。"));
+    m_cancelButton->setText(m_cleaning ? dlTr("停止后续删除") : dlTr("取消扫描"));
+    m_cancelButton->setToolTip(m_cleaning ? dlTr("只停止后续删除；已经删除的文件不能恢复。") : dlTr("保留已扫描的部分结果。"));
     m_progress->setVisible(m_scanning || m_cleaning);
     m_search->setEnabled(!busy);
     m_largeOnly->setEnabled(!busy);
@@ -731,10 +733,10 @@ void CachePage::updateSelection()
         bytes += entry.allocatedBytes;
         files += entry.fileCount;
     }
-    m_selection->setText(QStringLiteral("已选 %1 组 · %2 个文件 · 实际占用 %3%4")
+    m_selection->setText(dlTr("已选 %1 组 · %2 个文件 · 实际占用 %3%4")
                              .arg(selected.size()).arg(countText(files), formatBytes(bytes),
-                                 hidden ? QStringLiteral("（含 %1 个筛选外选择）").arg(hidden) : QString()));
-    m_count->setText(QStringLiteral("显示 %1 / %2 组").arg(m_filter->rowCount()).arg(m_model->rowCount()));
+                                 hidden ? dlTr("（含 %1 个筛选外选择）").arg(hidden) : QString()));
+    m_count->setText(dlTr("显示 %1 / %2 组").arg(m_filter->rowCount()).arg(m_model->rowCount()));
     updateControls();
 }
 
@@ -747,11 +749,11 @@ const CacheEntry *CachePage::currentEntry() const
 void CachePage::updateCurrentEntry()
 {
     if (const CacheEntry *entry = currentEntry()) {
-        const QString text = (entry->logOnly ? QStringLiteral("仅日志 · ") : QStringLiteral("普通缓存 · ")) + entry->path;
+        const QString text = (entry->logOnly ? dlTr("仅日志 · ") : dlTr("普通缓存 · ")) + entry->path;
         m_detail->setText(QFontMetrics(m_detail->font()).elidedText(text, Qt::ElideMiddle, qMax(180, m_detail->width())));
         m_detail->setToolTip(text);
     } else {
-        m_detail->setText(QStringLiteral("点击行或复选框勾选，再次点击取消；空格键也可切换。"));
+        m_detail->setText(dlTr("点击行或复选框勾选，再次点击取消；空格键也可切换。"));
         m_detail->setToolTip({});
     }
     updateControls();
@@ -779,8 +781,8 @@ void CachePage::cancelWork()
         return;
     m_cancel.store(true);
     m_status->setText(m_cleaning
-        ? QStringLiteral("正在停止后续删除… 已删除的文件不可恢复，完成后将重新扫描。")
-        : QStringLiteral("正在取消扫描… 将保留已扫描的部分结果。"));
+        ? dlTr("正在停止后续删除… 已删除的文件不可恢复，完成后将重新扫描。")
+        : dlTr("正在取消扫描… 将保留已扫描的部分结果。"));
     updateControls();
 }
 
@@ -796,31 +798,30 @@ void CachePage::beginClean()
     for (const CacheEntry &entry : selected) {
         bytes += entry.allocatedBytes;
         files += entry.fileCount;
-        paths << QStringLiteral("%1\n%2\n%3 · %4 个文件 · 实际占用 %5\n")
-                     .arg(entry.name, entry.path, entry.logOnly ? QStringLiteral("仅日志") : QStringLiteral("普通缓存"))
+        paths << dlTr("%1\n%2\n%3 · %4 个文件 · 实际占用 %5\n")
+                     .arg(entry.name, entry.path, entry.logOnly ? dlTr("仅日志") : dlTr("普通缓存"))
                      .arg(entry.fileCount).arg(formatBytes(entry.allocatedBytes));
     }
     m_confirming = true;
     updateControls();
     QDialog dialog(this);
     dialog.setObjectName(QStringLiteral("cacheConfirm"));
-    dialog.setWindowTitle(QStringLiteral("确认清理所选缓存与日志"));
+    dialog.setWindowTitle(dlTr("确认清理所选缓存与日志"));
     dialog.resize(670, 520);
     auto *layout = new QVBoxLayout(&dialog);
     layout->setContentsMargins(24, 22, 24, 22);
     layout->setSpacing(15);
-    auto *title = plainLabel(QStringLiteral("直接删除 %1 组中的 %2 个文件，预计实际占用 %3")
+    auto *title = plainLabel(dlTr("直接删除 %1 组中的 %2 个文件，预计实际占用 %3")
                                  .arg(selected.size()).arg(countText(files), formatBytes(bytes)), "cardTitle");
     title->setWordWrap(true);
     layout->addWidget(title);
-    auto *explanation = plainLabel(QStringLiteral(
-        "文件将直接删除，不进入回收站。请先关闭相关软件；正在使用的缓存可能重建。\n"
+    auto *explanation = plainLabel(dlTr("文件将直接删除，不进入回收站。请先关闭相关软件；正在使用的缓存可能重建。\n"
         "按本次扫描快照在删除前复核，检测到已修改或替换的文件会跳过；新文件与目录会保留。\n"
         "取消清理只会停止后续删除，已删除的文件不可恢复。"));
     explanation->setWordWrap(true);
     layout->addWidget(explanation);
     if (m_scanResult.canceled || !m_scanResult.error.isEmpty()) {
-        auto *partial = plainLabel(QStringLiteral("本次扫描未完成：仅清理已扫描到的部分文件。"), "notice");
+        auto *partial = plainLabel(dlTr("本次扫描未完成：仅清理已扫描到的部分文件。"), "notice");
         partial->setWordWrap(true);
         layout->addWidget(partial);
     }
@@ -830,11 +831,11 @@ void CachePage::beginClean()
     pathList->setPlainText(paths.join(QLatin1Char('\n')));
     layout->addWidget(pathList, 1);
     auto *buttons = new QDialogButtonBox;
-    auto *confirm = buttons->addButton(QStringLiteral("直接删除所选文件"), QDialogButtonBox::AcceptRole);
+    auto *confirm = buttons->addButton(dlTr("直接删除所选文件"), QDialogButtonBox::AcceptRole);
     confirm->setObjectName(QStringLiteral("cacheConfirmDelete"));
     confirm->setStyleSheet(QStringLiteral("color:#cd5263;background:#fff8f9;border-color:#edcbd0;"));
     confirm->setAutoDefault(false);
-    auto *cancel = buttons->addButton(QStringLiteral("取消"), QDialogButtonBox::RejectRole);
+    auto *cancel = buttons->addButton(dlTr("取消"), QDialogButtonBox::RejectRole);
     cancel->setObjectName(QStringLiteral("cacheConfirmCancel"));
     cancel->setDefault(true);
     layout->addWidget(buttons);
@@ -852,7 +853,7 @@ void CachePage::beginClean()
     m_cancel.store(false);
     m_scanNotice->hide();
     m_resultNotice->hide();
-    m_status->setText(QStringLiteral("正在清理所选文件… 可停止后续删除。"));
+    m_status->setText(dlTr("正在清理所选文件… 可停止后续删除。"));
     updateControls();
     const QString cacheRoot = m_cacheRoot;
     const QString stateRoot = m_stateRoot;
@@ -868,11 +869,11 @@ void CachePage::cleanFinished()
         return;
     const CacheCleanResult result = m_cleanWatcher.result();
     m_cleaning = false;
-    const QString summary = QStringLiteral("%1 · 已删除 %2 个文件（实际占用 %3）· 跳过 %4 · 失败 %5")
-                                .arg(result.canceled ? QStringLiteral("清理已停止") : QStringLiteral("清理完成"))
+    const QString summary = dlTr("%1 · 已删除 %2 个文件（实际占用 %3）· 跳过 %4 · 失败 %5")
+                                .arg(result.canceled ? dlTr("清理已停止") : dlTr("清理完成"))
                                 .arg(countText(result.removedFiles), formatBytes(result.removedBytes),
                                     countText(result.skippedFiles), countText(result.failedFiles));
-    m_resultNotice->setText(summary + QStringLiteral("。正在重新扫描剩余文件。"));
+    m_resultNotice->setText(summary + dlTr("。正在重新扫描剩余文件。"));
     m_resultNotice->setToolTip(result.errors.join(QLatin1Char('\n')));
     m_resultNotice->show();
     m_model->clearChecked();
@@ -881,8 +882,8 @@ void CachePage::cleanFinished()
     // is empty: new, changed, skipped, and still-open files can remain there.
     startScan();
     auto *message = new QMessageBox(result.failedFiles ? QMessageBox::Warning : QMessageBox::Information,
-                                   result.canceled ? QStringLiteral("清理已停止") : QStringLiteral("清理结果"),
-                                   summary + QStringLiteral("\n已删除的文件不可恢复；检测到变更或无法访问的文件会跳过。\n列表正在重新扫描，实际可用空间以磁盘刷新为准。"),
+                                   result.canceled ? dlTr("清理已停止") : dlTr("清理结果"),
+                                   summary + dlTr("\n已删除的文件不可恢复；检测到变更或无法访问的文件会跳过。\n列表正在重新扫描，实际可用空间以磁盘刷新为准。"),
                                    QMessageBox::Ok, this);
     message->setObjectName(QStringLiteral("cacheCleanResult"));
     message->setTextFormat(Qt::PlainText);
@@ -898,10 +899,10 @@ void CachePage::showScanNotes()
     if (!m_scanResult.error.isEmpty())
         notes.prepend(m_scanResult.error);
     if (m_scanResult.canceled)
-        notes.prepend(QStringLiteral("扫描已取消：当前统计为部分结果，仅能清理已扫描快照中的文件。"));
-    notes << QStringLiteral("扫描与清理仅针对当前用户缓存根和用户状态目录内的日志；不请求管理员权限，也不扫描系统 /var/log。");
-    QMessageBox message(QMessageBox::Information, QStringLiteral("缓存扫描提示"),
-                        QStringLiteral("成功扫描到的文件仍可查看和选择。"), QMessageBox::Ok, this);
+        notes.prepend(dlTr("扫描已取消：当前统计为部分结果，仅能清理已扫描快照中的文件。"));
+    notes << dlTr("扫描与清理仅针对当前用户缓存根和用户状态目录内的日志；不请求管理员权限，也不扫描系统 /var/log。");
+    QMessageBox message(QMessageBox::Information, dlTr("缓存扫描提示"),
+                        dlTr("成功扫描到的文件仍可查看和选择。"), QMessageBox::Ok, this);
     message.setTextFormat(Qt::PlainText);
     message.setDetailedText(notes.join(QStringLiteral("\n\n")));
     message.exec();

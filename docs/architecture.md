@@ -19,6 +19,11 @@ flowchart TD
     FS[Linux filesystem / 文件系统]
     PM[dpkg / APT / Snap / Flatpak]
     Auth[System Polkit dialog / 系统授权]
+    Appearance[Language and font preferences / 语言与字体]
+    Catalog[Embedded Qt catalog / 内置翻译]
+    UI --> Appearance
+    Appearance --> Catalog
+    Appearance --> Main
     UI --> Main
     Main --> CachePage
     Main --> Inventory
@@ -42,6 +47,8 @@ flowchart TD
 | --- | --- |
 | [`src/main.cpp`](../src/main.cpp) | Application style, command-line options, screenshot / read-only smoke entry point. 应用样式、命令行、截图与只读检查入口。 |
 | [`src/mainwindow.cpp`](../src/mainwindow.cpp) | Page navigation, background inventory / scan work, volume usage, uninstall confirmation and logs. 页面导航、库存与扫描任务、磁盘用量、卸载确认与日志。 |
+| [`src/appearance.cpp`](../src/appearance.cpp) / [`src/localization.h`](../src/localization.h) | Persistent language and font preferences, Qt translator, stylesheet font scaling and appearance dialog. 语言与字体偏好持久化、Qt 翻译器、样式字体缩放和设置对话框。 |
+| [`translations/`](../translations) / [`tools/update-translations.py`](../tools/update-translations.py) | Editable English Qt catalog and committed compiled resources; extraction and validation tooling. 可编辑的英文 Qt 目录、已提交的编译资源及提取校验工具。 |
 | [`src/models.cpp`](../src/models.cpp) | Inventory and file table models, filtering, sorting, and delegates. 软件与文件模型、筛选、排序和绘制。 |
 | [`src/widgets.cpp`](../src/widgets.cpp) | Shared presentation, disk chart, and production stylesheet. 共享控件、磁盘图表与正式样式表。 |
 | [`src/packagebackend.cpp`](../src/packagebackend.cpp) | Read-only package queries, desktop-entry mapping, size accounting, initial protection metadata. 只读包查询、桌面入口映射、体积口径和初始保护信息。 |
@@ -59,5 +66,9 @@ flowchart TD
 `QtConcurrent` runs filesystem work and inventory reads outside the UI thread. Cancellation is cooperative. `QProcess` runs external commands with separate argument entries, without evaluating user input in a shell. Removing software is a separate state machine: a successful preview alone does not execute a removal, and execution revalidates the preview.
 
 `QtConcurrent` 将文件扫描与库存读取移出界面线程，取消由任务协作完成。`QProcess` 以独立参数调用外部命令，不将用户文本交给 shell 求值。软件卸载使用独立状态机：完成预览不会自动执行，执行前还会再次校验。
+
+User-visible source messages pass through `dlTr()` using the `DiskLens` translation context. Simplified Chinese is the source language; English is loaded from the embedded `.qm` catalog. `QSettings` stores the selected language and font size. Applying preferences safely recreates the main window so existing labels, models and completed status messages use the same language. Navigation, scan roots and window geometry are restored; read-only work restarts and pending selections are cleared. Appearance changes are blocked during cleanup, package transactions and modal dialogs. Command-line language and font overrides apply only to the current session.
+
+面向用户的源码消息通过 `dlTr()` 与 `DiskLens` 翻译上下文输出，源语言为简体中文，英文来自内置 `.qm` 目录。`QSettings` 保存语言与字号。应用偏好设置时会安全重建主窗口，使已有标签、模型与完成状态统一使用新语言；恢复页面、扫描根目录与窗口几何信息，重新启动只读任务并清空待执行选择。清理、软件包事务和模态对话框进行时阻止切换。命令行语言与字号覆盖仅对当前进程生效。
 
 See the [user guide](usage.md) for behavioral limits and [validation scope](validation.md) for evidence boundaries. 行为限制见 [使用指南](usage.md)，验证边界见 [验证范围](validation.md)。

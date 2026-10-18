@@ -13,17 +13,21 @@
   <description>
     <p>DiskLens is a local Qt desktop application for Ubuntu. Inspect filesystem usage, browse DEB, Snap and Flatpak packages, find large files and review user cache and log cleanup.</p>
     <p xml:lang="zh-CN">磁盘透镜是一款面向 Ubuntu 的本地 Qt 桌面应用，提供文件系统空间统计、DEB / Snap / Flatpak 软件查看、大文件扫描以及用户缓存和日志清理。</p>
-    <p>The desktop interface is currently in Simplified Chinese. Documentation is available in English and Chinese. Package removal requires a preview and confirmation; cache cleanup requires selecting and confirming scanned entries.</p>
-    <p xml:lang="zh-CN">桌面界面目前为简体中文，文档提供中英文版本。软件卸载需预览并确认，缓存清理需勾选并确认扫描条目。</p>
+    <p>Switch between English and Simplified Chinese and adjust the font size in the application. Documentation is available in both languages. Package removal requires a preview and confirmation; cache cleanup requires selecting and confirming scanned entries.</p>
+    <p xml:lang="zh-CN">应用内可切换简体中文与英文，并调整字体大小。文档提供独立中英文版本。软件卸载需预览并确认，缓存清理需勾选并确认扫描条目。</p>
   </description>
   <launchable type="desktop-id">disklens.desktop</launchable>
-  <url type="homepage">https://github.com/broruan/Clean_app</url>
-  <url type="bugtracker">https://github.com/broruan/Clean_app/issues</url>
-  <url type="vcs-browser">https://github.com/broruan/Clean_app</url>
+  <url type="homepage">https://github.com/broruan/DiskLens</url>
+  <url type="bugtracker">https://github.com/broruan/DiskLens/issues</url>
+  <url type="vcs-browser">https://github.com/broruan/DiskLens</url>
   <provides><binary>disklens</binary></provides>
   <categories><category>System</category><category>Utility</category></categories>
   <content_rating type="oars-1.1"/>
+  <languages><lang percentage="100">en</lang><lang percentage="100">zh_CN</lang></languages>
   <releases>
+    <release version="1.3.0" date="2026-10-18">
+      <description><p>Switchable English and Chinese interface, persistent font sizing, and separate release documentation.</p></description>
+    </release>
     <release version="1.2.0" date="2026-10-18">
       <description><p>Interactive directory analysis, complete SHA-256 duplicate detection, developer workspace classification and application storage attribution.</p></description>
     </release>

@@ -1,3 +1,4 @@
+#include "localization.h"
 #include "filescanner.h"
 
 #include <QDir>
@@ -149,22 +150,22 @@ ScanResult scanLargeFiles(const QString &root, quint64 minimumBytes, int maxResu
         return result;
     }
     if (root.trimmed().isEmpty()) {
-        result.error = QStringLiteral("请选择要扫描的文件夹。");
+        result.error = dlTr("请选择要扫描的文件夹。");
         return result;
     }
     if (maxResults <= 0) {
-        result.error = QStringLiteral("显示文件数量必须大于 0。");
+        result.error = dlTr("显示文件数量必须大于 0。");
         return result;
     }
     if (root.contains(QChar::Null)) {
-        result.error = QStringLiteral("文件夹路径包含无效字符。");
+        result.error = dlTr("文件夹路径包含无效字符。");
         return result;
     }
 
     const QString absoluteRoot = QDir::cleanPath(QDir(root).absolutePath());
     const int rootDescriptor = openDirectoryWithoutSymlinks(absoluteRoot);
     if (rootDescriptor < 0) {
-        result.error = QStringLiteral("无法打开文件夹 %1：%2。请选择真实且可读取的文件夹，路径不能包含符号链接。")
+        result.error = dlTr("无法打开文件夹 %1：%2。请选择真实且可读取的文件夹，路径不能包含符号链接。")
                            .arg(absoluteRoot, systemError(errno));
         return result;
     }
@@ -173,7 +174,7 @@ ScanResult scanLargeFiles(const QString &root, quint64 minimumBytes, int maxResu
     if (::fstat(rootDescriptor, &rootStat) != 0) {
         const int savedError = errno;
         ::close(rootDescriptor);
-        result.error = QStringLiteral("无法读取文件夹信息：%1").arg(systemError(savedError));
+        result.error = dlTr("无法读取文件夹信息：%1").arg(systemError(savedError));
         return result;
     }
 
@@ -184,14 +185,14 @@ ScanResult scanLargeFiles(const QString &root, quint64 minimumBytes, int maxResu
     const QSet<QString> mounts = mountPaths(hasMountPaths);
     if (!hasMountId && !hasMountPaths) {
         ::close(rootDescriptor);
-        result.error = QStringLiteral("无法读取文件系统挂载边界，请检查 /proc 是否可访问。");
+        result.error = dlTr("无法读取文件系统挂载边界，请检查 /proc 是否可访问。");
         return result;
     }
     Directory rootDirectory(::fdopendir(rootDescriptor));
     if (!rootDirectory) {
         const int savedError = errno;
         ::close(rootDescriptor);
-        result.error = QStringLiteral("无法读取文件夹内容：%1").arg(systemError(savedError));
+        result.error = dlTr("无法读取文件夹内容：%1").arg(systemError(savedError));
         return result;
     }
 

@@ -1,1 +1,6 @@
-<RCC><qresource prefix="/"><file>disklens.svg</file></qresource></RCC>
+<RCC>
+  <qresource prefix="/">
+    <file>disklens.svg</file>
+    <file alias="translations/disklens_en.qm">../translations/disklens_en.qm</file>
+  </qresource>
+</RCC>

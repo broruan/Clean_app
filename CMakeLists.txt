@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(DiskLens VERSION 1.2.0 LANGUAGES CXX)
+project(DiskLens VERSION 1.3.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -30,6 +30,7 @@ target_compile_options(disklens_core PRIVATE -Wall -Wextra -Wpedantic)
 
 add_executable(disklens
     src/main.cpp src/mainwindow.h src/mainwindow.cpp
+    src/appearance.h src/appearance.cpp
     src/models.h src/models.cpp src/widgets.h src/widgets.cpp
     src/cachepage.h src/cachepage.cpp
     src/explorerpage.h src/explorerpage.cpp
@@ -66,6 +67,17 @@ if(BUILD_TESTING)
         add_test(NAME cachepage COMMAND cachepage_test)
         set_tests_properties(cachepage PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
     endif()
+    add_executable(localization_test tests/localization_test.cpp assets/resources.qrc)
+    target_link_libraries(localization_test PRIVATE disklens_core Qt${QT_VERSION_MAJOR}::Test)
+    target_compile_definitions(localization_test PRIVATE DISKLENS_SOURCE_DIR="${CMAKE_CURRENT_SOURCE_DIR}")
+    add_test(NAME localization COMMAND localization_test)
+    add_executable(appearance_test tests/appearance_test.cpp
+        src/appearance.h src/appearance.cpp src/mainwindow.h src/mainwindow.cpp
+        src/models.cpp src/widgets.cpp src/cachepage.cpp src/explorerpage.cpp
+        src/developerpage.cpp src/appstoragedialog.cpp assets/resources.qrc)
+    target_link_libraries(appearance_test PRIVATE disklens_core Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Concurrent Qt${QT_VERSION_MAJOR}::Test)
+    add_test(NAME appearance COMMAND appearance_test)
+    set_tests_properties(appearance PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
     foreach(test_name explorerpage developerpage appstoragedialog)
         if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/${test_name}_test.cpp")
             add_executable(${test_name}_test tests/${test_name}_test.cpp src/${test_name}.h src/${test_name}.cpp src/models.cpp src/widgets.cpp)

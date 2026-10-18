@@ -4,19 +4,33 @@
 
 ## English
 
-The current interface is Simplified Chinese. The navigation labels below match the application so you can find each view.
+DiskLens supports English and Simplified Chinese. The English navigation labels are **Overview**, **Installed apps**, **Large files**, **Cache & logs**, **Space explorer**, and **Developer tools**.
 
-### Storage overview — 空间总览
+### Appearance
+
+Open **Language & font** at the bottom of the sidebar. Choose **English** or **简体中文** and a font size from **11–18 px (default: 13 px)**. The preview helps compare sizes before you click **Apply**. The language and font size take effect immediately and are saved for future launches.
+
+Applying settings preserves your current page, scan directories and window position. Read-only scans restart; pending selections are cleared so that a new scan cannot inherit an old cleanup selection. Settings cannot be changed during cleanup, package operations or another open dialog.
+
+To override settings for one launch without saving them:
+
+```bash
+disklens --language en --font-size 15
+```
+
+`--language` accepts `en` or `zh_CN`; `--font-size` accepts an integer from 11 to 18 px. Omit either option to use its saved value.
+
+### Overview
 
 Choose a mounted volume to inspect filesystem totals. Used space is total capacity minus free space; available space excludes filesystem reservations. Installed-package estimates and scanned files can belong to other mounts, so they are not slices of the volume's usage chart.
 
 The application starts a background, read-only scan of your home directory with a 100 MiB threshold. You can continue using other pages or stop the scan. A canceled scan is marked as partial.
 
-### Installed applications — 已安装软件
+### Installed apps
 
-The default filter shows packages with desktop entries. Switch to **所有已安装软件包** to include libraries, runtimes, and other packages. Search matches name, package identifier, or description; source filters select DEB, Snap, or Flatpak. Click a column header to sort.
+The default filter shows packages with desktop entries. Switch to **All installed packages** to include libraries, runtimes, and other packages. Search matches name, package identifier, or description; source filters select DEB, Snap, or Flatpak. Click a column header to sort.
 
-Manually installed software and AppImages without package-manager records are not listed. Snap and Flatpak inventory is available when their tools and installations are present; DiskLens does not install those package managers for you.
+Manually installed software and AppImages without package-manager records are not listed. Snap and Flatpak inventory is available when their tools and installations are present; DiskLens does not install those package managers for you. App names and descriptions come from the installed system metadata and can remain in their original language.
 
 Package sizes are estimates, not a promise of recoverable disk space:
 
@@ -41,13 +55,13 @@ Snap does not provide an equivalent simulated removal plan. DiskLens verifies th
 
 Flatpak removes the selected complete application reference from its user or system installation with `--app --no-related`. It does not request removal of related runtimes or application user data.
 
-### Large files — 大文件
+### Large files
 
 Choose a directory and a threshold of 10 MiB, 100 MiB, 500 MiB, or 1 GiB. Start, stop, or repeat a scan. The table retains the largest 500 matching files; totals include all matched files, even those outside the table. You can filter results, copy a path, and open a containing folder. There is no delete operation on this page.
 
 The large-file scan reads path and file metadata, not file contents. The separate duplicate checker reads candidate contents after explicit activation; developer classification reads small marker files. Hidden files are included. Symlinks, special files, and other mounts are skipped; hard links are counted once. The root path and its ancestors must not contain symlinks. Permission failures, inaccessible paths, and changing entries can produce skipped items or partial results. Sparse files have distinct logical and allocated sizes.
 
-### Caches & logs — 缓存与日志
+### Cache & logs
 
 The first visit starts a scan. Ordinary caches and logs are grouped separately by application and sorted by allocated bytes. The defaults are:
 
@@ -58,9 +72,9 @@ The first visit starts a scan. Ordinary caches and logs are grouped separately b
 
 Absolute `XDG_CACHE_HOME` and `XDG_STATE_HOME` values override the defaults. The entire state directory is not treated as cache. The backend rejects broad system directories, the whole home directory and its ancestors, and overlapping roots. Cleanup does not request administrator privileges.
 
-No groups are selected by default. Click a row or its checkbox, or press Space on the current row, to toggle it. You can search, filter to allocated size **greater than 100 MiB**, or show only logs. **全选当前筛选** selects visible filtered groups. Existing selections remain selected when the filter changes; inspect the selection summary or use **清空选择** before continuing.
+No groups are selected by default. Click a row or its checkbox, or press Space on the current row, to toggle it. You can search, filter to allocated size **greater than 100 MiB**, or show only logs. **Select all filtered** selects visible filtered groups. Existing selections remain selected when the filter changes; inspect the selection summary or use **Clear selection** before continuing.
 
-**一键清理所选** opens a confirmation listing groups, paths, files, and estimated allocated size. Files are permanently deleted, without the trash. Close the related applications first; caches can be recreated and downloads may be needed again. Log deletion also removes those records.
+**Clean selected** opens a confirmation listing groups, paths, files, and estimated allocated size. Files are permanently deleted, without the trash. Close the related applications first; caches can be recreated and downloads may be needed again. Log deletion also removes those records.
 
 Only selected regular files from the scan snapshot are considered. Roots, ancestors, ownership, mount boundaries, file identity, sizes, and timestamps are rechecked before unlinking. Newly created, changed, replaced, foreign-owned, or multiply linked files are retained. Directories are retained. Stop requests prevent later deletions, but do not undo completed ones. Results show removed, skipped, and failed files, then the page scans again.
 
@@ -69,6 +83,14 @@ These checks are not a security isolation boundary against a malicious process r
 Allocated-byte totals come from file block counts. They do not guarantee an equal immediate increase in available disk space; for example, another process may still hold a deleted file open. Refresh the volume view to inspect actual available space.
 
 ## 简体中文
+
+### 语言与字体
+
+点击侧栏底部的 **语言与字体**，选择 **简体中文** 或 **English**，以及 **11–18 px（默认 13 px）** 的字号。可先通过预览比较大小，再点击 **应用**。语言与字体立即生效，并保存供下次启动使用。
+
+应用设置时会保留当前页面、扫描目录和窗口位置，重新启动只读扫描，并清空待执行的选择，避免新扫描沿用旧的清理勾选。清理、软件包操作或其他对话框进行期间不能修改设置。
+
+使用 `disklens --language zh_CN --font-size 15` 可仅覆盖本次启动，不保存到偏好设置。`--language` 支持 `en`、`zh_CN`，`--font-size` 支持 11–18 的整数（px）；省略的选项沿用已保存值。
 
 ### 空间总览
 
@@ -80,7 +102,7 @@ Allocated-byte totals come from file block counts. They do not guarantee an equa
 
 默认展示有桌面入口的软件，切换 **所有已安装软件包** 可查看库、运行时和其他组件。支持名称、包名、描述搜索，DEB / Snap / Flatpak 来源筛选，以及点击表头排序。
 
-没有软件包管理器记录的手工安装程序和 AppImage 不在列表中。Snap / Flatpak 库存依赖本机已有的命令与安装环境，DiskLens 不会替你安装这些包管理器。
+没有软件包管理器记录的手工安装程序和 AppImage 不在列表中。Snap / Flatpak 库存依赖本机已有的命令与安装环境，DiskLens 不会替你安装这些包管理器。软件名称与描述来自已安装的系统元数据，可能保持其原始语言。
 
 软件包体积是估算值，不等于卸载可释放的空间：
 
@@ -134,6 +156,6 @@ Flatpak 通过 `--app --no-related` 卸载用户或系统安装范围内的所�
 
 ## New analysis tools / 新分析工具
 
-Version 1.2 adds the **空间分析** and **开发环境** pages, plus **空间画像** on the installed-app page. See [the bilingual analysis guide](analysis-tools.md) for exact workflows, evidence rules and accounting. These views inspect and export; they do not delete duplicate files, developer outputs or application data.
+Version 1.2 added the **Space explorer** and **Developer tools** pages, plus **Storage profile** on the Installed apps page. See [the bilingual analysis guide](analysis-tools.md) for exact workflows, evidence rules and accounting. These views inspect and export; they do not delete duplicate files, developer outputs or application data.
 
 1.2 新增 **空间分析**、**开发环境** 页面，以及软件列表中的 **空间画像**。具体操作、识别证据和统计口径见 [双语分析指南](analysis-tools.md)。这些功能用于查看和导出，不删除重复文件、开发产物或软件用户数据。

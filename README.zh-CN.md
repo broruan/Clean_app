@@ -7,21 +7,21 @@
 
 <div align="center">
 
-[![构建](https://github.com/broruan/Clean_app/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/broruan/Clean_app/actions/workflows/build.yml)
-[![版本](https://img.shields.io/github/v/release/broruan/Clean_app?color=0f766e&display_name=tag&cacheSeconds=300)](https://github.com/broruan/Clean_app/releases/latest)
+[![构建](https://github.com/broruan/DiskLens/actions/workflows/build.yml/badge.svg?branch=main)](https://github.com/broruan/DiskLens/actions/workflows/build.yml)
+[![版本](https://img.shields.io/github/v/release/broruan/DiskLens?color=0f766e&display_name=tag&cacheSeconds=300)](https://github.com/broruan/DiskLens/releases/latest)
 [![许可证：MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
 [![Ubuntu](https://img.shields.io/badge/Ubuntu-22.04%20%7C%2024.04%20%7C%2026.04-E95420?logo=ubuntu&logoColor=white)](#ubuntu-安装包)
 [![架构](https://img.shields.io/badge/64--bit-amd64%20%7C%20arm64-334155)](#ubuntu-安装包)
 
 [English](README.md) · **简体中文**
 
-[下载安装](https://github.com/broruan/Clean_app/releases/latest) · [使用指南](docs/usage.md) · [源码构建](docs/building.md) · [反馈问题](https://github.com/broruan/Clean_app/issues/new/choose)
+[下载安装](https://github.com/broruan/DiskLens/releases/latest) · [使用指南](docs/usage.md) · [源码构建](docs/building.md) · [反馈问题](https://github.com/broruan/DiskLens/issues/new/choose)
 
 </div>
 
 ![磁盘透镜空间总览](docs/images/overview.png)
 
-磁盘透镜是一款使用 **Qt Widgets 与 C++17** 编写的桌面磁盘空间管理应用，直接读取本机文件系统和软件包信息。**应用界面当前为简体中文**，项目文档提供中英双语版本。截图来自真实程序，扫描目录使用示例数据，已安装软件信息来自截图环境的实际读取。
+磁盘透镜是一款使用 **Qt Widgets 与 C++17** 编写的桌面磁盘空间管理应用，直接读取本机文件系统和软件包信息。**应用内可切换简体中文与 English，并调整界面字体大小**；项目文档也提供独立的中英双语版本。截图来自真实程序，扫描目录使用示例数据，已安装软件信息来自截图环境的实际读取。
 
 ## 为什么选择磁盘透镜
 
@@ -59,9 +59,9 @@
 
 | Ubuntu | x86-64 / Intel 与 AMD（`amd64`） | ARM64 / AArch64（`arm64`） |
 | --- | --- | --- |
-| 22.04 | `disklens_1.2.0_ubuntu22.04_amd64.deb` | `disklens_1.2.0_ubuntu22.04_arm64.deb` |
-| 24.04 | `disklens_1.2.0_ubuntu24.04_amd64.deb` | `disklens_1.2.0_ubuntu24.04_arm64.deb` |
-| 26.04 | `disklens_1.2.0_ubuntu26.04_amd64.deb` | `disklens_1.2.0_ubuntu26.04_arm64.deb` |
+| 22.04 | `disklens_1.3.0_ubuntu22.04_amd64.deb` | `disklens_1.3.0_ubuntu22.04_arm64.deb` |
+| 24.04 | `disklens_1.3.0_ubuntu24.04_amd64.deb` | `disklens_1.3.0_ubuntu24.04_arm64.deb` |
+| 26.04 | `disklens_1.3.0_ubuntu26.04_amd64.deb` | `disklens_1.3.0_ubuntu26.04_arm64.deb` |
 
 请同时匹配 **Ubuntu 版本与 CPU 架构**。`x86_64` 在 Debian 包中称为 `amd64`，`aarch64` 对应 `arm64`。不提供 32 位 x86 / ARM 安装包，其他 Linux 发行版不在预编译包支持矩阵内。
 
@@ -73,11 +73,11 @@ printf 'Ubuntu release: %s\n' "$VERSION_ID"
 dpkg --print-architecture
 ```
 
-在 [Releases 下载页面](https://github.com/broruan/Clean_app/releases/latest) 选择对应安装包后安装。以 Ubuntu 24.04 x86-64 为例：
+在 [Releases 下载页面](https://github.com/broruan/DiskLens/releases/latest) 选择对应安装包后安装。以 Ubuntu 24.04 x86-64 为例：
 
 ```bash
 cd ~/Downloads
-sudo apt install ./disklens_1.2.0_ubuntu24.04_amd64.deb
+sudo apt install ./disklens_1.3.0_ubuntu24.04_amd64.deb
 disklens
 ```
 
@@ -90,6 +90,12 @@ sha256sum --ignore-missing --check SHA256SUMS
 ```
 
 发布工作流完成矩阵构建与测试后才发布安装包。CI 结果覆盖构建、自动测试与包检查；真实桌面授权、实际卸载软件，以及每种 ARM / x86 实机桌面仍需分别验证。请查看 [验证范围](docs/validation.md) 和对应发布版本的工作流记录。
+
+## 语言与字体
+
+点击侧栏底部的 **语言与字体**，选择 **简体中文** 或 **English**，再选择 **11–18 px（默认 13 px）** 并应用。设置立即生效，下次启动自动沿用。程序保留当前页面、扫描目录和窗口位置，重新开始只读扫描并清空待执行的选择；清理、软件包操作或其他对话框进行期间暂不可切换。
+
+也可以用 `disklens --language zh_CN --font-size 15` 仅覆盖本次启动，不保存到偏好设置。`--language` 支持 `en` 与 `zh_CN`，`--font-size` 支持 11–18 px。
 
 ## 从查看开始
 
@@ -108,9 +114,9 @@ DEB 卸载先运行 APT 模拟，并在执行前重新校验软件包状态；�
 
 ```bash
 sudo apt update
-sudo apt install build-essential cmake pkg-config qtbase5-dev libqt5svg5 fonts-noto-cjk dpkg-dev pkexec xdg-utils baobab
-git clone https://github.com/broruan/Clean_app.git
-cd Clean_app
+sudo apt install build-essential cmake pkg-config qtbase5-dev libqt5svg5 qttranslations5-l10n fonts-noto-cjk dpkg-dev pkexec xdg-utils baobab
+git clone https://github.com/broruan/DiskLens.git
+cd DiskLens
 cmake -S . -B build -DCMAKE_BUILD_TYPE=Release -DDISKLENS_QT_MAJOR=5
 cmake --build build --parallel 2
 ctest --test-dir build --output-on-failure

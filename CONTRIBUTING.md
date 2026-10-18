@@ -2,7 +2,7 @@
 
 ## English
 
-Bug reports, focused fixes, documentation improvements, and platform validation are welcome. Please search [existing issues](https://github.com/broruan/Clean_app/issues) before opening a new one. Use [SECURITY.md](SECURITY.md) for vulnerability reports.
+Bug reports, focused fixes, documentation improvements, and platform validation are welcome. Please search [existing issues](https://github.com/broruan/DiskLens/issues) before opening a new one. Use [SECURITY.md](SECURITY.md) for vulnerability reports.
 
 ### Before changing code
 
@@ -12,7 +12,7 @@ Bug reports, focused fixes, documentation improvements, and platform validation 
 
 ### Build and verify
 
-Follow [docs/building.md](docs/building.md). The release toolchain is C++17 with Qt 5; Qt 6 is an explicit source-build option. The current user interface is Simplified Chinese, while repository documentation is bilingual.
+Follow [docs/building.md](docs/building.md). The release toolchain is C++17 with Qt 5; Qt 6 is an explicit source-build option. The application and documentation support English and Simplified Chinese.
 
 For a code change, compile and run the relevant CTest targets. Run the complete suite before proposing a release. UI changes need review using the production Fusion style and `applicationStyle()`, including a screenshot when visible behavior changes. Cache table changes should verify visible checkbox clicks, whole-row clicks, Space toggling, and focused / unfocused text contrast. A model-only test is insufficient for those interactions.
 
@@ -25,6 +25,8 @@ Use `QTemporaryDir` or another explicitly disposable fixture for deletion tests.
 - Preserve the separation between read-only inspection, explicit confirmation, and execution.
 - Preserve ownership, mount, symlink, snapshot, and protected-package checks. Changes to these boundaries need a regression case demonstrating the relevant failure or risk.
 - Do not equate package estimates or file allocated-byte totals with guaranteed recovered space.
+- Wrap user-visible source text in `dlTr()` and update `translations/disklens_en.ts`. Run `python3 tools/update-translations.py --compile` after installing the developer-only `qttools5-dev-tools`; commit both the `.ts` and compiled `.qm`. Preserve placeholders, markup, line breaks and intentional whitespace.
+- Check changed views in English and Chinese at default and larger font sizes using the production stylesheet. Verify that controls remain readable and usable.
 - Keep English and Chinese README information consistent, especially filenames, dependencies, supported targets, and validation claims.
 
 ### Pull requests
@@ -33,7 +35,7 @@ Explain the concrete problem, resulting behavior, and checks you actually ran. I
 
 ## 简体中文
 
-欢迎问题反馈、聚焦的修复、文档改进与平台验证。提交前请搜索 [已有问题](https://github.com/broruan/Clean_app/issues)。安全漏洞请按 [SECURITY.md](SECURITY.md) 报告。
+欢迎问题反馈、聚焦的修复、文档改进与平台验证。提交前请搜索 [已有问题](https://github.com/broruan/DiskLens/issues)。安全漏洞请按 [SECURITY.md](SECURITY.md) 报告。
 
 ### 修改前
 
@@ -43,7 +45,7 @@ Explain the concrete problem, resulting behavior, and checks you actually ran. I
 
 ### 构建与验证
 
-按 [构建指南](docs/building.md) 操作。发布工具链为 C++17 / Qt 5，Qt 6 是显式的源码构建选项。应用界面当前为简体中文，仓库文档提供中英双语。
+按 [构建指南](docs/building.md) 操作。发布工具链为 C++17 / Qt 5，Qt 6 是显式的源码构建选项。应用与仓库文档均支持简体中文和英文。
 
 代码改动应编译并执行相关 CTest；发布前运行完整测试。界面改动应使用正式 Fusion 风格与 `applicationStyle()` 检查，可见行为变化请附截图。缓存表格变动应验证复选框可见区域、整行点击、空格切换，以及有无焦点时的选中文字对比度；只测模型状态无法覆盖这些交互。
 
@@ -56,6 +58,8 @@ Explain the concrete problem, resulting behavior, and checks you actually ran. I
 - 保持只读检查、明确确认与执行之间的边界。
 - 保留所有权、挂载、软链接、快照与系统组件保护；修改边界时，应补充针对该故障或风险的回归用例。
 - 不把软件包估算大小或分配块统计称为保证释放的磁盘空间。
+- 面向用户的源码文本使用 `dlTr()`，同步更新 `translations/disklens_en.ts`。安装仅开发需要的 `qttools5-dev-tools` 后运行 `python3 tools/update-translations.py --compile`，同时提交 `.ts` 与编译后的 `.qm`；保留占位符、标记、换行及有意使用的空白。
+- 使用正式样式检查改动页面的中英文默认字号与较大字号，确认文字、控件均可读可用。
 - 保持中英文 README 的包名、依赖、目标平台与验证表述一致。
 
 ### 提交 PR

@@ -6,7 +6,7 @@ DiskLens source code and its original disk-and-lens SVG icon are licensed under 
 
 ### Qt
 
-DiskLens dynamically links Qt Core, Widgets, and Concurrent. Automated tests additionally use Qt Test. SVG rendering uses the distribution's Qt SVG library / plugin. These components are installed as Ubuntu packages rather than bundled library copies in the DiskLens `.deb`.
+DiskLens dynamically links Qt Core, Widgets, and Concurrent. Automated tests additionally use Qt Test. SVG rendering uses the distribution's Qt SVG library / plugin; standard dialog translations come from the distribution's Qt translation package. These components are installed as Ubuntu packages rather than bundled library copies in the DiskLens `.deb`.
 
 Qt is developed by The Qt Company and its contributors. Qt is offered under open-source and commercial terms that depend on the version and module. The Ubuntu Qt 5 base package's copyright file lists **LGPL-3 or GPL-2** for its primary library files, with additional licenses for particular files and embedded components. Consult the exact packages you install for authoritative copyright and license notices, for example:
 
@@ -31,7 +31,7 @@ DiskLens 源码与原创“磁盘 + 透镜”SVG 图标使用 [MIT 许可证](LI
 
 ### Qt
 
-程序动态链接 Qt Core、Widgets、Concurrent，自动测试还使用 Qt Test。SVG 图标由发行版的 Qt SVG 库 / 插件渲染。这些组件通过 Ubuntu 包安装，DiskLens 的 `.deb` 不捆绑 Qt 库副本。
+程序动态链接 Qt Core、Widgets、Concurrent，自动测试还使用 Qt Test。SVG 图标由发行版的 Qt SVG 库 / 插件渲染，标准对话框译文来自发行版的 Qt 翻译包。这些组件通过 Ubuntu 包安装，DiskLens 的 `.deb` 不捆绑 Qt 库副本。
 
 Qt 由 The Qt Company 与贡献者开发，按版本与模块提供不同的开源或商业授权。Ubuntu Qt 5 base 包的版权文件对主要库文件列出 **LGPL-3 或 GPL-2**，个别文件和内嵌组件还可能采用其他许可证。准确条款应以实际安装包的版权与许可证文件为准，可参考上方命令。
 

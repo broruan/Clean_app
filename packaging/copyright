@@ -1,6 +1,6 @@
 Format: https://www.debian.org/doc/packaging-manuals/copyright-format/1.0/
 Upstream-Name: DiskLens
-Source: https://github.com/broruan/Clean_app
+Source: https://github.com/broruan/DiskLens
 
 Files: *
 Copyright: 2026 broruan and DiskLens contributors

@@ -1,6 +1,7 @@
 #pragma once
 
 #include "types.h"
+#include "appearance.h"
 #include <QFutureWatcher>
 #include <QMainWindow>
 #include <atomic>
@@ -21,10 +22,25 @@ public:
     void setScanRoot(const QString &path);
     bool isSettled() const;
     bool verifyUi(QString *error);
+    struct ViewState {
+        QByteArray geometry;
+        QString scanRoot, explorerRoot, developerRoot;
+        int page = 0;
+        bool duplicates = false;
+        bool duplicateRequested = false;
+        quint64 duplicateMinimum = 1024 * 1024;
+    };
+    ViewState viewState() const;
+    void restoreViewState(const ViewState &state);
+    bool canChangeAppearance() const;
+    bool requestAppearance(const AppearancePreferences &preferences);
+signals:
+    void appearanceChangeRequested(const QString &language, int fontSize);
 protected:
     void closeEvent(QCloseEvent *event) override;
 private:
     void createUi();
+    void showAppearanceSettings();
     QWidget *createOverview();
     QWidget *createAppsPage();
     QWidget *createFilesPage();
@@ -66,7 +82,7 @@ private:
     QStackedWidget *m_pages = nullptr;
     QVector<QPushButton*> m_nav;
     QLabel *m_title = nullptr, *m_subtitle = nullptr, *m_updateLabel = nullptr;
-    QPushButton *m_refresh = nullptr, *m_warningButton = nullptr;
+    QPushButton *m_refresh = nullptr, *m_warningButton = nullptr, *m_appearance = nullptr;
     QProgressBar *m_inventoryProgress = nullptr;
     QComboBox *m_volumes = nullptr;
     DiskRing *m_diskRing = nullptr;

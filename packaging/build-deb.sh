@@ -87,8 +87,10 @@ package_depends="$(cd "$dependency_dir" && dpkg-shlibdeps -O "$stage_dir/usr/bin
 [[ -n "$package_depends" ]] || { echo 'Could not determine runtime dependencies.' >&2; exit 1; }
 # Qt loads SVG support dynamically, outside the ELF dependency graph.
 svg_dependency=libqt5svg5
+translation_dependency=qttranslations5-l10n
 if [[ "$qt_major" == 6 ]]; then
     svg_dependency=libqt6svg6
+    translation_dependency=qt6-translations-l10n
     # Qt 6.4+ distributions split the image/icon plugins out of libqt6svg6.
     if dpkg-query -W -f='${Status}' qt6-svg-plugins 2>/dev/null | grep -qx 'install ok installed'; then
         svg_dependency+=', qt6-svg-plugins'
@@ -96,7 +98,7 @@ if [[ "$qt_major" == 6 ]]; then
         echo 'Install qt6-svg-plugins before packaging with Qt 6.' >&2; exit 1
     fi
 fi
-for runtime_package in "libqt${qt_major}svg${qt_major}" pkexec xdg-utils; do
+for runtime_package in "libqt${qt_major}svg${qt_major}" "$translation_dependency" pkexec xdg-utils; do
     dpkg-query -W -f='${Status}' "$runtime_package" 2>/dev/null | grep -qx 'install ok installed' || {
         echo "Install the runtime dependency before packaging: $runtime_package" >&2; exit 1;
     }
@@ -128,8 +130,8 @@ Priority: optional
 Architecture: ${package_arch}
 Installed-Size: ${installed_kib}
 Maintainer: broruan <broruan@users.noreply.github.com>
-Homepage: https://github.com/broruan/Clean_app
-Depends: ${package_depends}, ${svg_dependency}, pkexec, xdg-utils
+Homepage: https://github.com/broruan/DiskLens
+Depends: ${package_depends}, ${svg_dependency}, ${translation_dependency}, pkexec, xdg-utils
 Recommends: fonts-noto-cjk
 Description: Local disk usage and installed software explorer
  Qt desktop application for DEB, Snap and Flatpak inventory, protected removal,

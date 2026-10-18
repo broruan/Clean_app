@@ -1,3 +1,4 @@
+#include "localization.h"
 #include "packagebackend.h"
 
 #include <QDir>
@@ -59,11 +60,11 @@ CommandResult command(const QString &program, const QStringList &arguments,
 QString commandFailure(const CommandResult &result)
 {
     if (result.timedOut)
-        return QStringLiteral("读取超时");
+        return dlTr("读取超时");
     QString error = QString::fromUtf8(result.error).simplified();
     if (error.size() > 280)
         error = error.left(280) + QChar(0x2026);
-    return error.isEmpty() ? QStringLiteral("退出码 %1").arg(result.exitCode) : error;
+    return error.isEmpty() ? dlTr("退出码 %1").arg(result.exitCode) : error;
 }
 
 QString singleLine(QString value)
@@ -229,11 +230,11 @@ bool protectedDeb(const QString &id, const QString &essential, const QString &pr
                   const QString &priority, QString *reason)
 {
     if (essential == QStringLiteral("yes") || protectedFlag == QStringLiteral("yes")) {
-        *reason = QStringLiteral("包管理器标记为 Essential / Protected 的系统组件");
+        *reason = dlTr("包管理器标记为 Essential / Protected 的系统组件");
         return true;
     }
     if (priority == QStringLiteral("required") || priority == QStringLiteral("important")) {
-        *reason = QStringLiteral("优先级为 required / important 的系统组件");
+        *reason = dlTr("优先级为 required / important 的系统组件");
         return true;
     }
     const QString package = id.section(QLatin1Char(':'), 0, 0);
@@ -249,7 +250,7 @@ bool protectedDeb(const QString &id, const QString &essential, const QString &pr
         "linux-generic(?:-.*)?|linux-base|init|init-system-helpers|grub(?:-.*)?|"
         "shim(?:-.*)?|cryptsetup(?:-.*)?)$"));
     if (systemPackages.match(package).hasMatch()) {
-        *reason = QStringLiteral("桌面、启动、网络或软件包管理所需的系统组件");
+        *reason = dlTr("桌面、启动、网络或软件包管理所需的系统组件");
         return true;
     }
     return false;
@@ -259,13 +260,13 @@ void readDebPackages(InventoryResult &result, const QStringList &locales)
 {
     const QString executable = QStandardPaths::findExecutable(QStringLiteral("dpkg-query"));
     if (executable.isEmpty()) {
-        result.warnings << QStringLiteral("未找到 dpkg-query，无法读取 DEB 软件。");
+        result.warnings << dlTr("未找到 dpkg-query，无法读取 DEB 软件。");
         return;
     }
     const QString format = QStringLiteral("${binary:Package}\t${Status}\t${Installed-Size}\t${Version}\t${Essential}\t${Protected}\t${Priority}\t${binary:Summary}\n");
     const CommandResult packages = command(executable, {QStringLiteral("-W"), QStringLiteral("-f=") + format});
     if (packages.exitCode != 0) {
-        result.warnings << QStringLiteral("DEB 软件读取失败：%1").arg(commandFailure(packages));
+        result.warnings << dlTr("DEB 软件读取失败：%1").arg(commandFailure(packages));
         return;
     }
     QHash<QString, int> indices;
@@ -293,10 +294,10 @@ void readDebPackages(InventoryResult &result, const QStringList &locales)
         result.apps.append(app);
     }
     if (!invalidSizePackages.isEmpty()) {
-        result.warnings << QStringLiteral("%1 个 DEB 包未提供有效 Installed-Size，大小记为未知（%2%3）。")
+        result.warnings << dlTr("%1 个 DEB 包未提供有效 Installed-Size，大小记为未知（%2%3）。")
                                .arg(invalidSizePackages.size())
                                .arg(invalidSizePackages.mid(0, 5).join(QStringLiteral("、")))
-                               .arg(invalidSizePackages.size() > 5 ? QStringLiteral(" 等") : QString());
+                               .arg(invalidSizePackages.size() > 5 ? dlTr(" 等") : QString());
     }
     QVector<DesktopEntry> desktops = desktopEntries(QStringLiteral("/usr/share/applications"), locales);
     desktops += desktopEntries(QStringLiteral("/usr/local/share/applications"), locales);
@@ -347,7 +348,7 @@ void readDebPackages(InventoryResult &result, const QStringList &locales)
         }
     }
     if (queryFailed)
-        result.warnings << QStringLiteral("部分桌面入口所属 DEB 包读取失败，相关软件仍可在“全部包”中找到。");
+        result.warnings << dlTr("部分桌面入口所属 DEB 包读取失败，相关软件仍可在“全部包”中找到。");
 }
 
 QString yamlScalar(QString value)
@@ -387,7 +388,7 @@ void snapMetadata(AppEntry &app, const QString &mountPath)
                                   || value == QStringLiteral("snapd") || value == QStringLiteral("kernel")
                                   || value == QStringLiteral("gadget"))) {
             app.removable = false;
-            app.protectionReason = QStringLiteral("其他 Snap 软件依赖的系统运行环境");
+            app.protectionReason = dlTr("其他 Snap 软件依赖的系统运行环境");
         }
     }
 }
@@ -424,7 +425,7 @@ void finalizeSnap(AppEntry &app, const QString &revision, const QStringList &loc
         "^(?:snapd|snapd-desktop-integration|bare|core[0-9]*|gnome-[0-9].*|gtk-common-themes|mesa-[0-9].*)$"));
     if (sharedRuntime.match(app.id).hasMatch()) {
         app.removable = false;
-        app.protectionReason = QStringLiteral("Snap 服务或其他软件共享的桌面运行环境");
+        app.protectionReason = dlTr("Snap 服务或其他软件共享的桌面运行环境");
     }
 }
 
@@ -457,7 +458,7 @@ void readSnapPackages(InventoryResult &result, const QStringList &locales)
         return;
     const CommandResult packages = command(executable, {QStringLiteral("list"), QStringLiteral("--unicode=never")}, 6000);
     if (packages.exitCode != 0) {
-        result.warnings << QStringLiteral("Snap 软件读取失败：%1").arg(commandFailure(packages));
+        result.warnings << dlTr("Snap 软件读取失败：%1").arg(commandFailure(packages));
         return;
     }
     const QList<QByteArray> lines = packages.output.split('\n');
@@ -501,7 +502,7 @@ void readFlatpakPackages(InventoryResult &result, const QStringList &locales)
     const QString columns = QStringLiteral("--columns=application:f,name:f,version:f,size:f,installation:f,ref:f,description:f");
     const CommandResult packages = command(executable, {QStringLiteral("list"), QStringLiteral("--app"), columns});
     if (packages.exitCode != 0) {
-        result.warnings << QStringLiteral("Flatpak 软件读取失败：%1").arg(commandFailure(packages));
+        result.warnings << dlTr("Flatpak 软件读取失败：%1").arg(commandFailure(packages));
         return;
     }
     QHash<QString, QVector<DesktopEntry>> desktopCache;
@@ -544,7 +545,7 @@ void readFlatpakPackages(InventoryResult &result, const QStringList &locales)
         app.desktopApp = true;
         if (app.scope != QStringLiteral("user") && app.scope != QStringLiteral("system")) {
             app.removable = false;
-            app.protectionReason = QStringLiteral("此 Flatpak 位于命名安装位置，请使用对应的系统管理工具卸载。");
+            app.protectionReason = dlTr("此 Flatpak 位于命名安装位置，请使用对应的系统管理工具卸载。");
         }
         const QString directory = app.scope == QStringLiteral("user")
             ? QStandardPaths::writableLocation(QStandardPaths::GenericDataLocation)
@@ -562,9 +563,9 @@ void readFlatpakPackages(InventoryResult &result, const QStringList &locales)
         hasApps = true;
     }
     if (invalidRows)
-        result.warnings << QStringLiteral("有 %1 条 Flatpak 记录格式不受支持，已跳过。").arg(invalidRows);
+        result.warnings << dlTr("有 %1 条 Flatpak 记录格式不受支持，已跳过。").arg(invalidRows);
     if (hasApps)
-        result.warnings << QStringLiteral("Flatpak 大小来自包管理器显示值，可能经过四舍五入；共享运行库与用户数据未计入。");
+        result.warnings << dlTr("Flatpak 大小来自包管理器显示值，可能经过四舍五入；共享运行库与用户数据未计入。");
 }
 
 } // namespace

@@ -1,7 +1,16 @@
+#include "localization.h"
 #include "widgets.h"
 #include "models.h"
 #include <QPainter>
+#include <QApplication>
+#include <QtMath>
 #include <QPainterPath>
+
+int scaledUiPixels(int pixels)
+{
+    const int fontSize = qApp->property("disklensFontSize").toInt();
+    return qRound(pixels * (fontSize > 0 ? fontSize / 13.0 : 1.0));
+}
 
 QIcon lineIcon(const QString &name, const QColor &color)
 {
@@ -54,10 +63,10 @@ void DiskRing::paintEvent(QPaintEvent *)
             p.drawArc(ring,90*16,-qMax(1,int(fraction*360*16)));
         }
     }
-    QFont f = font(); f.setPointSize(24); f.setBold(true); p.setFont(f); p.setPen(QColor("#25324d"));
+    QFont f = font(); f.setPixelSize(scaledUiPixels(32)); f.setBold(true); p.setFont(f); p.setPen(QColor("#25324d"));
     p.drawText(rect().adjusted(0,-8,0,-8),Qt::AlignCenter,m_total ? QString::number(qRound(double(m_used)*100/m_total))+"%" : QStringLiteral("—"));
-    f.setPointSize(9); f.setBold(false); p.setFont(f); p.setPen(QColor("#8c96aa"));
-    p.drawText(rect().adjusted(0,52,0,0),Qt::AlignCenter,QStringLiteral("磁盘已使用"));
+    f.setPixelSize(scaledUiPixels(12)); f.setBold(false); p.setFont(f); p.setPen(QColor("#8c96aa"));
+    p.drawText(rect().adjusted(0,52,0,0),Qt::AlignCenter,dlTr("磁盘已使用"));
 }
 
 RankChart::RankChart(QWidget *parent) : QWidget(parent) { setMinimumHeight(316); setSizePolicy(QSizePolicy::Expanding,QSizePolicy::Expanding); }
@@ -65,7 +74,7 @@ void RankChart::setItems(QVector<RankItem> items) { m_items=std::move(items); up
 void RankChart::paintEvent(QPaintEvent *)
 {
     QPainter p(this); p.setRenderHint(QPainter::Antialiasing);
-    if (m_items.isEmpty()) { p.setPen(QColor("#8b96ac")); p.drawText(rect(),Qt::AlignCenter,QStringLiteral("正在读取已安装的软件…")); return; }
+    if (m_items.isEmpty()) { p.setPen(QColor("#8b96ac")); p.drawText(rect(),Qt::AlignCenter,dlTr("正在读取已安装的软件…")); return; }
     const QColor colors[] = {QColor("#536bed"),QColor("#7586ef"),QColor("#96a3f4"),QColor("#40bba5"),QColor("#79cfbf"),QColor("#aadfd5")};
     const double maxBytes = qMax<quint64>(1,m_items.first().bytes);
     const int rowHeight = qMin(58,height()/qMax(1,int(m_items.size())));

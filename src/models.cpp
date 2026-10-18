@@ -1,4 +1,6 @@
+#include "localization.h"
 #include "models.h"
+#include "widgets.h"
 #include <QApplication>
 #include <QFileInfo>
 #include <QIcon>
@@ -19,7 +21,7 @@ int AppModel::columnCount(const QModelIndex &parent) const { return parent.isVal
 QVariant AppModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (orientation != Qt::Horizontal || role != Qt::DisplayRole) return {};
-    return QStringList{QStringLiteral("软件名称"), QStringLiteral("来源"), QStringLiteral("版本"), QStringLiteral("软件包体积")}.value(section);
+    return QStringList{dlTr("软件名称"), dlTr("来源"), dlTr("版本"), dlTr("软件包体积")}.value(section);
 }
 const AppEntry *AppModel::entry(int row) const { return row >= 0 && row < m_entries.size() ? &m_entries[row] : nullptr; }
 void AppModel::setEntries(QVector<AppEntry> entries) { beginResetModel(); m_entries = std::move(entries); endResetModel(); }
@@ -35,7 +37,7 @@ QVariant AppModel::data(const QModelIndex &index, int role) const
     if (role == SearchRole) return app->name + " " + app->id + " " + app->description;
     if (role == Qt::ToolTipRole) {
         QString tip = app->name + "\n" + app->id + "\n" + app->description;
-        tip += QStringLiteral("\n体积口径：DEB 为安装元数据估值；Snap 为当前压缩包；Flatpak 为部署体积。\n不含用户文件、缓存；共享数据可能重复计算。0 / — 表示未知。");
+        tip += dlTr("\n体积口径：DEB 为安装元数据估值；Snap 为当前压缩包；Flatpak 为部署体积。\n不含用户文件、缓存；共享数据可能重复计算。0 / — 表示未知。");
         if (!app->removable) tip += "\n" + app->protectionReason;
         return tip;
     }
@@ -68,7 +70,7 @@ int FileModel::columnCount(const QModelIndex &parent) const { return parent.isVa
 QVariant FileModel::headerData(int section, Qt::Orientation orientation, int role) const
 {
     if (orientation != Qt::Horizontal || role != Qt::DisplayRole) return {};
-    return QStringList{QStringLiteral("文件 / 所在位置"), QStringLiteral("类型"), QStringLiteral("修改时间"), QStringLiteral("文件大小")}.value(section);
+    return QStringList{dlTr("文件 / 所在位置"), dlTr("类型"), dlTr("修改时间"), dlTr("文件大小")}.value(section);
 }
 void FileModel::setEntries(QVector<FileEntry> entries) { beginResetModel(); m_entries = std::move(entries); endResetModel(); }
 const FileEntry *FileModel::entry(int row) const { return row >= 0 && row < m_entries.size() ? &m_entries[row] : nullptr; }
@@ -81,15 +83,15 @@ QVariant FileModel::data(const QModelIndex &index, int role) const
     if (role == SecondaryRole) return info.absolutePath();
     if (role == IconRole) return QStringLiteral("text-x-generic");
     if (role == SearchRole) return file->path;
-    if (role == Qt::ToolTipRole) return file->path + QStringLiteral("\n逻辑大小：") + formatBytes(file->bytes)
-        + QStringLiteral("\n实际分配空间：") + formatBytes(file->allocatedBytes);
+    if (role == Qt::ToolTipRole) return file->path + dlTr("\n逻辑大小：") + formatBytes(file->bytes)
+        + dlTr("\n实际分配空间：") + formatBytes(file->allocatedBytes);
     if (role == Qt::TextAlignmentRole && index.column() == 3) return int(Qt::AlignRight | Qt::AlignVCenter);
     if (role == SortRole && index.column() == 3) return QVariant::fromValue(file->bytes);
     if (role == SortRole && index.column() == 2) return file->modified;
     if (role == Qt::DisplayRole || role == SortRole) {
         switch (index.column()) {
         case 0: return info.fileName();
-        case 1: return info.suffix().isEmpty() ? QStringLiteral("文件") : info.suffix().toUpper();
+        case 1: return info.suffix().isEmpty() ? dlTr("文件") : info.suffix().toUpper();
         case 2: return file->modified.toLocalTime().toString("yyyy-MM-dd HH:mm");
         case 3: return formatBytes(file->bytes);
         }
@@ -117,15 +119,17 @@ void EntryDelegate::paint(QPainter *painter, const QStyleOptionViewItem &option,
         if (!icon.isNull()) icon.paint(painter, iconRect.adjusted(7, 7, -7, -7));
         else {
             painter->setPen(m_files ? QColor("#159878") : QColor("#5265cb"));
-            QFont font = option.font; font.setBold(true); font.setPointSize(12); painter->setFont(font);
+            QFont font = option.font; font.setBold(true); font.setPixelSize(scaledUiPixels(16)); painter->setFont(font);
             painter->drawText(iconRect, Qt::AlignCenter, index.data().toString().left(1).toUpper());
         }
         QRect textRect = box.adjusted(50, 0, 0, 0);
         QFont font = option.font; font.setBold(true); painter->setFont(font); painter->setPen(QColor("#26324b"));
-        painter->drawText(QRect(textRect.left(), box.center().y()-21, textRect.width(), 23), Qt::AlignVCenter,
+        painter->drawText(QRect(textRect.left(), box.center().y()-scaledUiPixels(21), textRect.width(), scaledUiPixels(23)), Qt::AlignVCenter,
                           QFontMetrics(font).elidedText(index.data().toString(), Qt::ElideRight, textRect.width()));
-        font.setBold(false); font.setPointSizeF(qMax(8.0, font.pointSizeF()-1)); painter->setFont(font); painter->setPen(QColor("#8791a5"));
-        painter->drawText(QRect(textRect.left(), box.center().y()+3, textRect.width(), 20), Qt::AlignVCenter,
+        font.setBold(false); if (font.pixelSize()>0) font.setPixelSize(qMax(8, font.pixelSize()-1));
+        else font.setPointSizeF(qMax(8.0, font.pointSizeF()-1));
+        painter->setFont(font); painter->setPen(QColor("#8791a5"));
+        painter->drawText(QRect(textRect.left(), box.center().y()+scaledUiPixels(3), textRect.width(), scaledUiPixels(20)), Qt::AlignVCenter,
                           QFontMetrics(font).elidedText(index.data(SecondaryRole).toString(), Qt::ElideMiddle, textRect.width()));
     } else if (!m_files && index.column() == 1) {
         const QString name = index.data().toString();

@@ -1,3 +1,4 @@
+#include "localization.h"
 #include "developerbackend.h"
 
 #include <QDir>
@@ -134,41 +135,41 @@ DeveloperEntry describe(DeveloperCategory category, const Node &node, const QStr
     e.category = category; e.path = node.path; e.name = node.name; e.evidence = evidence;
     switch (category) {
     case DeveloperCategory::RosBuild:
-        e.purpose = QStringLiteral("colcon 工作空间编译中间产物与构建配置。");
-        e.rebuildability = QStringLiteral("通常可重建；需保留源码、依赖、构建参数与工具链。");
-        e.suggestion = QStringLiteral("先确认没有编译任务，并记录构建参数；本页仅分析，请按项目说明管理构建目录。"); break;
+        e.purpose = dlTr("colcon 工作空间编译中间产物与构建配置。");
+        e.rebuildability = dlTr("通常可重建；需保留源码、依赖、构建参数与工具链。");
+        e.suggestion = dlTr("先确认没有编译任务，并记录构建参数；本页仅分析，请按项目说明管理构建目录。"); break;
     case DeveloperCategory::RosInstall:
-        e.purpose = QStringLiteral("colcon 工作空间安装产物，运行节点时可能正在使用。");
-        e.rebuildability = QStringLiteral("通常可重新编译生成；删除会使当前工作空间的可执行程序与环境失效。");
-        e.suggestion = QStringLiteral("先确认源码与依赖完整，并停止依赖此目录的进程，再决定是否重建。"); break;
+        e.purpose = dlTr("colcon 工作空间安装产物，运行节点时可能正在使用。");
+        e.rebuildability = dlTr("通常可重新编译生成；删除会使当前工作空间的可执行程序与环境失效。");
+        e.suggestion = dlTr("先确认源码与依赖完整，并停止依赖此目录的进程，再决定是否重建。"); break;
     case DeveloperCategory::RosLog:
-        e.purpose = QStringLiteral("已识别 colcon 工作空间中的构建日志目录。");
-        e.rebuildability = QStringLiteral("日志记录历史编译过程，历史内容无法通过重新编译还原。");
-        e.suggestion = QStringLiteral("先保留故障排查所需日志，确认目录内容后按项目保留策略处理。"); break;
+        e.purpose = dlTr("已识别 colcon 工作空间中的构建日志目录。");
+        e.rebuildability = dlTr("日志记录历史编译过程，历史内容无法通过重新编译还原。");
+        e.suggestion = dlTr("先保留故障排查所需日志，确认目录内容后按项目保留策略处理。"); break;
     case DeveloperCategory::Rosbag:
-        e.purpose = QStringLiteral("ROS 数据录制目录，包含 metadata.yaml 与 DB3 / MCAP 记录。");
-        e.rebuildability = QStringLiteral("原始采集数据；通常不可重建，不属于缓存。");
-        e.suggestion = QStringLiteral("保留原始数据；需要腾空间时先备份或迁移，并验证备份可回放。"); break;
+        e.purpose = dlTr("ROS 数据录制目录，包含 metadata.yaml 与 DB3 / MCAP 记录。");
+        e.rebuildability = dlTr("原始采集数据；通常不可重建，不属于缓存。");
+        e.suggestion = dlTr("保留原始数据；需要腾空间时先备份或迁移，并验证备份可回放。"); break;
     case DeveloperCategory::Data:
-        e.purpose = QStringLiteral("同一目录内的点云、录制数据或大于阈值的普通文件，按目录聚合。");
-        e.rebuildability = QStringLiteral("可能包含原始采集数据、模型或数据集；不能推定可重建。");
-        e.suggestion = QStringLiteral("打开目录确认来源与用途；优先备份或迁移，不提供自动清理。"); break;
+        e.purpose = dlTr("同一目录内的点云、录制数据或大于阈值的普通文件，按目录聚合。");
+        e.rebuildability = dlTr("可能包含原始采集数据、模型或数据集；不能推定可重建。");
+        e.suggestion = dlTr("打开目录确认来源与用途；优先备份或迁移，不提供自动清理。"); break;
     case DeveloperCategory::PipCache:
-        e.purpose = QStringLiteral("pip 的下载与 wheel 构建缓存。");
-        e.rebuildability = QStringLiteral("一般可重新下载或构建；离线环境和私有软件源可能无法恢复。");
-        e.suggestion = QStringLiteral("确认网络、私有源与离线需求后，使用 pip 自带缓存管理命令处理。"); break;
+        e.purpose = dlTr("pip 的下载与 wheel 构建缓存。");
+        e.rebuildability = dlTr("一般可重新下载或构建；离线环境和私有软件源可能无法恢复。");
+        e.suggestion = dlTr("确认网络、私有源与离线需求后，使用 pip 自带缓存管理命令处理。"); break;
     case DeveloperCategory::NpmCache:
-        e.purpose = QStringLiteral("npm 内容寻址缓存，不包含项目 node_modules 的整体统计。");
-        e.rebuildability = QStringLiteral("一般可重新获取；网络、已下架依赖与离线需求可能限制恢复。");
-        e.suggestion = QStringLiteral("先使用 npm 自带缓存校验功能，保留离线开发所需内容。"); break;
+        e.purpose = dlTr("npm 内容寻址缓存，不包含项目 node_modules 的整体统计。");
+        e.rebuildability = dlTr("一般可重新获取；网络、已下架依赖与离线需求可能限制恢复。");
+        e.suggestion = dlTr("先使用 npm 自带缓存校验功能，保留离线开发所需内容。"); break;
     case DeveloperCategory::Ccache:
-        e.purpose = QStringLiteral("ccache 编译结果缓存，可加快重复编译。");
-        e.rebuildability = QStringLiteral("通常可重新编译生成；清理后首次编译耗时可能增加。");
-        e.suggestion = QStringLiteral("确认无编译任务后，通过 ccache 自带容量与清理策略管理。"); break;
+        e.purpose = dlTr("ccache 编译结果缓存，可加快重复编译。");
+        e.rebuildability = dlTr("通常可重新编译生成；清理后首次编译耗时可能增加。");
+        e.suggestion = dlTr("确认无编译任务后，通过 ccache 自带容量与清理策略管理。"); break;
     case DeveloperCategory::Conda:
-        e.purpose = QStringLiteral("包含 conda-meta 包记录的 Conda 依赖环境。");
-        e.rebuildability = QStringLiteral("这是可运行的依赖环境，不是缓存；重建取决于环境清单、渠道与包可用性。");
-        e.suggestion = QStringLiteral("确认环境用途，导出依赖清单并保留项目约束，再用 Conda 环境管理功能处理。"); break;
+        e.purpose = dlTr("包含 conda-meta 包记录的 Conda 依赖环境。");
+        e.rebuildability = dlTr("这是可运行的依赖环境，不是缓存；重建取决于环境清单、渠道与包可用性。");
+        e.suggestion = dlTr("确认环境用途，导出依赖清单并保留项目约束，再用 Conda 环境管理功能处理。"); break;
     }
     return e;
 }
@@ -177,15 +178,15 @@ DeveloperEntry describe(DeveloperCategory category, const Node &node, const QStr
 QString developerCategoryName(DeveloperCategory category)
 {
     switch (category) {
-    case DeveloperCategory::RosBuild: return QStringLiteral("ROS 构建产物");
-    case DeveloperCategory::RosInstall: return QStringLiteral("ROS 安装产物");
-    case DeveloperCategory::RosLog: return QStringLiteral("ROS 构建日志");
-    case DeveloperCategory::Rosbag: return QStringLiteral("ROS 原始录制");
-    case DeveloperCategory::Data: return QStringLiteral("点云 / 大数据");
-    case DeveloperCategory::PipCache: return QStringLiteral("pip 缓存");
-    case DeveloperCategory::NpmCache: return QStringLiteral("npm 缓存");
-    case DeveloperCategory::Ccache: return QStringLiteral("ccache 缓存");
-    case DeveloperCategory::Conda: return QStringLiteral("Conda 环境");
+    case DeveloperCategory::RosBuild: return dlTr("ROS 构建产物");
+    case DeveloperCategory::RosInstall: return dlTr("ROS 安装产物");
+    case DeveloperCategory::RosLog: return dlTr("ROS 构建日志");
+    case DeveloperCategory::Rosbag: return dlTr("ROS 原始录制");
+    case DeveloperCategory::Data: return dlTr("点云 / 大数据");
+    case DeveloperCategory::PipCache: return dlTr("pip 缓存");
+    case DeveloperCategory::NpmCache: return dlTr("npm 缓存");
+    case DeveloperCategory::Ccache: return dlTr("ccache 缓存");
+    case DeveloperCategory::Conda: return dlTr("Conda 环境");
     }
     return {};
 }
@@ -197,10 +198,10 @@ DeveloperScanResult scanDeveloperUsage(const DeveloperScanOptions &options, std:
     const auto canceled = [cancel] { return cancel && cancel->load(std::memory_order_relaxed); };
     if (canceled()) { result.canceled = true; return result; }
     if (options.root.trimmed().isEmpty() || options.root.contains(QChar::Null)) {
-        result.error = QStringLiteral("请选择真实且可读取的文件夹。"); return result;
+        result.error = dlTr("请选择真实且可读取的文件夹。"); return result;
     }
     if (!options.maxEntries || options.maxDirectories <= 0 || options.maxDepth < 0 || options.maxResults <= 0) {
-        result.error = QStringLiteral("扫描数量、目录深度与显示上限设置无效。"); return result;
+        result.error = dlTr("扫描数量、目录深度与显示上限设置无效。"); return result;
     }
     result.root = absolute(options.root);
     const QString home = absolute(options.homePath.isEmpty() ? QDir::homePath() : options.homePath);
@@ -210,22 +211,22 @@ DeveloperScanResult scanDeveloperUsage(const DeveloperScanOptions &options, std:
     cache = QDir::cleanPath(cache);
     const int rootFd = openRoot(result.root);
     if (rootFd < 0) {
-        result.error = QStringLiteral("无法打开 %1：%2。路径不能包含符号链接。")
+        result.error = dlTr("无法打开 %1：%2。路径不能包含符号链接。")
             .arg(result.root, QString::fromLocal8Bit(std::strerror(errno))); return result;
     }
     struct stat rootStat {};
     if (::fstat(rootFd, &rootStat) != 0) {
-        ::close(rootFd); result.error = QStringLiteral("无法读取扫描根目录信息。"); return result;
+        ::close(rootFd); result.error = dlTr("无法读取扫描根目录信息。"); return result;
     }
     quint64 rootMount = 0;
     const bool hasMountId = mountId(rootFd, "", rootMount);
     bool hasMountPaths = false;
     const QSet<QString> mounts = mountPaths(hasMountPaths);
     if (!hasMountId && !hasMountPaths) {
-        ::close(rootFd); result.error = QStringLiteral("无法确认挂载边界，请检查 /proc 是否可访问。"); return result;
+        ::close(rootFd); result.error = dlTr("无法确认挂载边界，请检查 /proc 是否可访问。"); return result;
     }
     Directory rootDirectory(::fdopendir(rootFd));
-    if (!rootDirectory) { ::close(rootFd); result.error = QStringLiteral("无法读取根目录内容。"); return result; }
+    if (!rootDirectory) { ::close(rootFd); result.error = dlTr("无法读取根目录内容。"); return result; }
     std::vector<Node> nodes;
     Node root; root.path = result.root; root.name = QFileInfo(result.root).fileName();
     if (root.name.isEmpty()) root.name = result.root;
@@ -333,10 +334,10 @@ DeveloperScanResult scanDeveloperUsage(const DeveloperScanOptions &options, std:
     for (int i = 0; i < int(nodes.size()); ++i) {
         const Node &node = nodes[size_t(i)];
         if (node.metadata && node.recording)
-            select(i, DeveloperCategory::Rosbag, QStringLiteral("同一目录包含 metadata.yaml 与 .db3 / .mcap 普通文件"));
+            select(i, DeveloperCategory::Rosbag, dlTr("同一目录包含 metadata.yaml 与 .db3 / .mcap 普通文件"));
         const int meta = childNamed(nodes, i, QStringLiteral("conda-meta"));
         if (meta >= 0 && (nodes[size_t(meta)].condaHistory || nodes[size_t(meta)].condaJson))
-            select(i, DeveloperCategory::Conda, QStringLiteral("conda-meta 目录内包含 history 或 JSON 包记录"));
+            select(i, DeveloperCategory::Conda, dlTr("conda-meta 目录内包含 history 或 JSON 包记录"));
     }
     for (int i = 0; i < int(nodes.size()); ++i) {
         const Node &node = nodes[size_t(i)];
@@ -350,34 +351,34 @@ DeveloperScanResult scanDeveloperUsage(const DeveloperScanOptions &options, std:
         }
         const bool sourceMarker = source >= 0 && nodes[size_t(source)].hasPackage;
         if (sourceMarker || buildMarker) {
-            const QString proof = (sourceMarker ? QStringLiteral("src 子树中包含 package.xml 的 <package> 结构")
-                                                 : QStringLiteral("build 中包含 colcon 构建标记"))
-                + QStringLiteral("；工作空间：") + node.path;
+            const QString proof = (sourceMarker ? dlTr("src 子树中包含 package.xml 的 <package> 结构")
+                                                 : dlTr("build 中包含 colcon 构建标记"))
+                + dlTr("；工作空间：") + node.path;
             // A ROS source tree does not establish that an arbitrary sibling
             // named build is generated. Require its own colcon provenance.
             if (buildMarker)
-                select(build, DeveloperCategory::RosBuild, proof + QStringLiteral("；build 含可验证 colcon 标记"));
+                select(build, DeveloperCategory::RosBuild, proof + dlTr("；build 含可验证 colcon 标记"));
             // A valid workspace alone does not prove arbitrary install/log
             // contents are generated; keep the explanation deliberately scoped.
             if (install >= 0 && nodes[size_t(install)].setup && nodes[size_t(install)].localSetup && nodes[size_t(install)].setupUtility)
-                select(install, DeveloperCategory::RosInstall, proof + QStringLiteral("；install 含三项 colcon 环境脚本"));
+                select(install, DeveloperCategory::RosInstall, proof + dlTr("；install 含三项 colcon 环境脚本"));
             if (log >= 0 && buildMarker)
                 select(log, DeveloperCategory::RosLog, proof);
         }
         if (node.path == cache + QStringLiteral("/pip")
             && (childNamed(nodes, i, QStringLiteral("http-v2")) >= 0 || childNamed(nodes, i, QStringLiteral("http")) >= 0
                 || childNamed(nodes, i, QStringLiteral("wheels")) >= 0 || childNamed(nodes, i, QStringLiteral("selfcheck")) >= 0))
-            select(i, DeveloperCategory::PipCache, QStringLiteral("当前用户缓存根下 pip 目录，含 pip 缓存结构"));
+            select(i, DeveloperCategory::PipCache, dlTr("当前用户缓存根下 pip 目录，含 pip 缓存结构"));
         if (node.path == home + QStringLiteral("/.npm/_cacache")
             && (childNamed(nodes, i, QStringLiteral("content-v2")) >= 0 || childNamed(nodes, i, QStringLiteral("index-v5")) >= 0))
-            select(i, DeveloperCategory::NpmCache, QStringLiteral("当前用户 .npm/_cacache，含内容寻址缓存结构"));
+            select(i, DeveloperCategory::NpmCache, dlTr("当前用户 .npm/_cacache，含内容寻址缓存结构"));
         if (node.path == cache + QStringLiteral("/ccache") || node.path == home + QStringLiteral("/.ccache")) {
             bool marker = node.ccacheConfig;
             for (int child : node.children) {
                 const Node &part = nodes[size_t(child)];
                 if (part.name.size() == 1 && QStringLiteral("0123456789abcdef").contains(part.name) && part.stats) marker = true;
             }
-            if (marker) select(i, DeveloperCategory::Ccache, QStringLiteral("当前用户 ccache 标准位置，含配置或分片统计文件"));
+            if (marker) select(i, DeveloperCategory::Ccache, dlTr("当前用户 ccache 标准位置，含配置或分片统计文件"));
         }
     }
     std::vector<Size> covered(nodes.size());
@@ -386,7 +387,7 @@ DeveloperScanResult scanDeveloperUsage(const DeveloperScanOptions &options, std:
         const Candidate &candidate = candidates[size_t(i)];
         if (candidate.selected || node.data.files) {
             DeveloperEntry entry = describe(candidate.selected ? candidate.category : DeveloperCategory::Data, node,
-                candidate.selected ? candidate.evidence : QStringLiteral("按文件扩展名或逻辑大小阈值 %1 字节识别；仅统计本目录直接包含的匹配文件").arg(options.largeFileBytes));
+                candidate.selected ? candidate.evidence : dlTr("按文件扩展名或逻辑大小阈值 %1 字节识别；仅统计本目录直接包含的匹配文件").arg(options.largeFileBytes));
             const Size size = candidate.selected ? node.total.without(covered[size_t(i)]) : node.data;
             entry.bytes = size.bytes; entry.allocatedBytes = size.allocated; entry.fileCount = size.files;
             entry.excludesNestedGroups = candidate.selected && covered[size_t(i)].files > 0;
@@ -406,10 +407,10 @@ DeveloperScanResult scanDeveloperUsage(const DeveloperScanOptions &options, std:
         for (int i = options.maxResults; i < result.entries.size(); ++i) result.hiddenAllocatedBytes += result.entries.at(i).allocatedBytes;
         result.entries.resize(options.maxResults);
     }
-    if (result.limited) result.warnings << QStringLiteral("已达到扫描数量或深度上限，当前为部分结果。可选择更小的目录重新扫描。");
-    if (result.skippedEntries) result.warnings << QStringLiteral("有 %1 项因权限、挂载边界、特殊文件或读取失败而跳过。").arg(result.skippedEntries);
-    if (result.skippedLinks) result.warnings << QStringLiteral("已跳过 %1 个符号链接；路径和统计不会越过链接目标。").arg(result.skippedLinks);
-    if (result.hiddenEntries) result.warnings << QStringLiteral("按实际占用显示前 %1 组，另外 %2 组未显示或导出。总计仍包含这些组。")
+    if (result.limited) result.warnings << dlTr("已达到扫描数量或深度上限，当前为部分结果。可选择更小的目录重新扫描。");
+    if (result.skippedEntries) result.warnings << dlTr("有 %1 项因权限、挂载边界、特殊文件或读取失败而跳过。").arg(result.skippedEntries);
+    if (result.skippedLinks) result.warnings << dlTr("已跳过 %1 个符号链接；路径和统计不会越过链接目标。").arg(result.skippedLinks);
+    if (result.hiddenEntries) result.warnings << dlTr("按实际占用显示前 %1 组，另外 %2 组未显示或导出。总计仍包含这些组。")
         .arg(options.maxResults).arg(result.hiddenEntries);
     return result;
 }
@@ -429,7 +430,7 @@ bool exportDeveloperCsv(const DeveloperScanResult &result, const QString &path, 
     const bool inScanRoot = !scanRoot.isEmpty() && (within(absoluteOutput, scanRoot)
         || within(canonicalOutput, canonicalRoot) || within(resolvedOutput, canonicalRoot));
     if (output.isDir() || (inScanRoot && (output.exists() || output.isSymLink()))) {
-        if (error) *error = QStringLiteral("为保护已扫描数据，不能覆盖分析目录内的已有文件或目录。请选择新的报告文件名，或保存到分析目录之外。");
+        if (error) *error = dlTr("为保护已扫描数据，不能覆盖分析目录内的已有文件或目录。请选择新的报告文件名，或保存到分析目录之外。");
         return false;
     }
     // Inside the source tree, commit to a private staging file then publish via
@@ -445,9 +446,9 @@ bool exportDeveloperCsv(const DeveloperScanResult &result, const QString &path, 
     QSaveFile file(commitPath);
     if (!file.open(QIODevice::WriteOnly)) { if (error) *error = file.errorString(); return false; }
     QByteArray csv("\xEF\xBB\xBF");
-    const QStringList header{QStringLiteral("类别"), QStringLiteral("项目"), QStringLiteral("实际占用（字节）"),
-        QStringLiteral("逻辑大小（字节）"), QStringLiteral("文件数"), QStringLiteral("目录"), QStringLiteral("识别依据"),
-        QStringLiteral("可重建性"), QStringLiteral("建议动作"), QStringLiteral("排除嵌套分组"), QStringLiteral("扫描状态")};
+    const QStringList header{dlTr("类别"), dlTr("项目"), dlTr("实际占用（字节）"),
+        dlTr("逻辑大小（字节）"), dlTr("文件数"), dlTr("目录"), dlTr("识别依据"),
+        dlTr("可重建性"), dlTr("建议动作"), dlTr("排除嵌套分组"), dlTr("扫描状态")};
     auto row = [&](const QStringList &values) {
         QStringList quoted; for (const QString &value : values) quoted << csvString(value);
         csv += (quoted.join(QLatin1Char(',')) + QStringLiteral("\r\n")).toUtf8();
@@ -472,15 +473,15 @@ bool exportDeveloperCsv(const DeveloperScanResult &result, const QString &path, 
     row({QStringLiteral("error"), result.error});
     row({QStringLiteral("warnings"), result.warnings.join(QLatin1Char('\n'))});
     row(header);
-    const QString state = result.canceled ? QStringLiteral("已取消，部分结果")
-        : (partial ? QStringLiteral("部分结果") : QStringLiteral("已完成"));
+    const QString state = result.canceled ? dlTr("已取消，部分结果")
+        : (partial ? dlTr("部分结果") : dlTr("已完成"));
     for (const DeveloperEntry &entry : result.entries)
         row({developerCategoryName(entry.category), entry.name, QString::number(entry.allocatedBytes), QString::number(entry.bytes),
              QString::number(entry.fileCount), entry.path, entry.evidence, entry.rebuildability, entry.suggestion,
-             entry.excludesNestedGroups ? QStringLiteral("是") : QStringLiteral("否"), state});
+             entry.excludesNestedGroups ? dlTr("是") : dlTr("否"), state});
     if (file.write(csv) != csv.size() || !file.commit()) { if (error) *error = file.errorString(); return false; }
     if (inScanRoot && ::link(QFile::encodeName(commitPath).constData(), QFile::encodeName(absoluteOutput).constData()) != 0) {
-        if (error) *error = QStringLiteral("无法安全创建报告（不会覆盖已有数据）：%1").arg(QString::fromLocal8Bit(std::strerror(errno)));
+        if (error) *error = dlTr("无法安全创建报告（不会覆盖已有数据）：%1").arg(QString::fromLocal8Bit(std::strerror(errno)));
         return false;
     }
     if (error) error->clear();

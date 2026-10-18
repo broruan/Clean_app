@@ -1,3 +1,4 @@
+#include "localization.h"
 #include "explorerpage.h"
 
 #include "models.h"
@@ -29,6 +30,8 @@
 #include <QSignalBlocker>
 #include <QSplitter>
 #include <QTabWidget>
+#include <QTabBar>
+#include <QResizeEvent>
 #include <QTemporaryFile>
 #include <QTreeWidget>
 #include <QUrl>
@@ -98,11 +101,11 @@ bool partial(const DuplicateScanResult &result)
 QString completion(bool canceled, bool truncated, quint64 skipped, const QString &error)
 {
     QStringList notes;
-    if (canceled) notes << QStringLiteral("已取消，以下为部分结果");
-    if (truncated) notes << QStringLiteral("已达到扫描数量或深度上限，以下为部分结果");
-    if (skipped) notes << QStringLiteral("跳过 %1 项（其他挂载点、权限或扫描期间变动等）").arg(count(skipped));
+    if (canceled) notes << dlTr("已取消，以下为部分结果");
+    if (truncated) notes << dlTr("已达到扫描数量或深度上限，以下为部分结果");
+    if (skipped) notes << dlTr("跳过 %1 项（其他挂载点、权限或扫描期间变动等）").arg(count(skipped));
     if (!error.isEmpty()) notes << error;
-    return notes.isEmpty() ? QStringLiteral("扫描完成；仅统计所选文件系统，排除符号链接与特殊文件，硬链接只计一次。")
+    return notes.isEmpty() ? dlTr("扫描完成；仅统计所选文件系统，排除符号链接与特殊文件，硬链接只计一次。")
                            : notes.join(QStringLiteral("；"));
 }
 
@@ -181,6 +184,42 @@ void styleTree(QTreeWidget *tree)
     }
     tree->setPalette(palette);
 }
+class ReadableTabBar final : public QTabBar {
+public:
+    explicit ReadableTabBar(QWidget *parent) : QTabBar(parent)
+    { setExpanding(false); setElideMode(Qt::ElideNone); setUsesScrollButtons(true); }
+protected:
+    QSize tabSizeHint(int index) const override
+    {
+        QFont selectedFont=font(); selectedFont.setWeight(QFont::DemiBold);
+        const QFontMetrics selectedMetrics(selectedFont);
+        return QTabBar::tabSizeHint(index).expandedTo(QSize(
+            qMax(fontMetrics().horizontalAdvance(tabText(index)),selectedMetrics.horizontalAdvance(tabText(index)))+40,
+            qMax(fontMetrics().height(),selectedMetrics.height())+20));
+    }
+    void paintEvent(QPaintEvent *) override
+    {
+        // Draw with the same measured font. QSS can otherwise switch the
+        // selected font weight after computing a smaller text clip rectangle.
+        QPainter painter(this);
+        for(int index=0;index<count();++index) {
+            const bool selected=index==currentIndex();
+            const QRect bounds=tabRect(index);
+            painter.fillRect(bounds,selected?QColor("#e8eeff"):QColor("#f1f4fa"));
+            QFont textFont=font(); if(selected) textFont.setWeight(QFont::DemiBold);
+            painter.setFont(textFont); painter.setPen(selected?QColor("#435bd9"):QColor("#66748e"));
+            painter.drawText(bounds.adjusted(16,0,-16,0),Qt::AlignCenter,tabText(index));
+            if(selected && hasFocus()) {
+                painter.setPen(QPen(QColor("#7286e6"),1,Qt::DotLine));
+                painter.drawRect(bounds.adjusted(3,3,-4,-4));
+            }
+        }
+    }
+};
+class ExplorerTabs final : public QTabWidget {
+public:
+    ExplorerTabs() { setTabBar(new ReadableTabBar(this)); }
+};
 } // namespace
 
 // Every row uses the current directory's actual allocated bytes as its common
@@ -193,8 +232,8 @@ public:
         setObjectName(QStringLiteral("explorerMap"));
         setMinimumSize(250, 250);
         setFocusPolicy(Qt::StrongFocus);
-        setAccessibleName(QStringLiteral("当前目录实际占用比例图"));
-        setToolTip(QStringLiteral("按实际占用排序，显示当前层前 8 项；完整结果见左侧。当前目录自身的元数据计入总占用但不单独绘图。点击一行进入目录；文件会在列表中选中。"));
+        setAccessibleName(dlTr("当前目录实际占用比例图"));
+        setToolTip(dlTr("按实际占用排序，显示当前层前 8 项；完整结果见左侧。当前目录自身的元数据计入总占用但不单独绘图。点击一行进入目录；文件会在列表中选中。"));
         setMouseTracking(true);
     }
 
@@ -208,6 +247,7 @@ public:
             }
         }
         m_focus = m_items.isEmpty() ? -1 : 0;
+        updateMinimumHeight();
         update();
     }
 
@@ -219,14 +259,17 @@ protected:
         QPainter painter(this); painter.setRenderHint(QPainter::Antialiasing);
         painter.fillRect(rect(), Qt::white);
         painter.setPen(QColor("#34415c")); QFont title = font(); title.setBold(true); painter.setFont(title);
-        painter.drawText(QRect(12, 6, width() - 24, 25), Qt::AlignVCenter, QStringLiteral("当前层 · 实际占用"));
+        painter.drawText(QRect(12, 6, width() - 24, fontMetrics().height()), Qt::AlignVCenter,
+            QFontMetrics(title).elidedText(dlTr("当前层 · 实际占用"), Qt::ElideRight, width()-24));
         painter.setFont(font()); painter.setPen(QColor("#8993a7"));
-        painter.drawText(QRect(12, 31, width() - 24, 22), Qt::AlignVCenter, QStringLiteral("条长 = 项目占用 / 当前目录总占用"));
+        painter.drawText(subtitleRect(), Qt::AlignLeft | Qt::AlignTop | Qt::TextWordWrap,
+            dlTr("条长 = 项目占用 / 当前目录总占用"));
         if (m_items.isEmpty()) {
-            painter.drawText(rect().adjusted(15, 55, -15, -15), Qt::AlignCenter | Qt::TextWordWrap,
-                             QStringLiteral("暂无可显示的子项\n扫描完成后，可点击占用条逐层查看"));
+            painter.drawText(rect().adjusted(15, rowsTop(), -15, -15), Qt::AlignCenter | Qt::TextWordWrap,
+                             dlTr("暂无可显示的子项\n扫描完成后，可点击占用条逐层查看"));
             return;
         }
+        QVariantList textBounds,barBounds;
         const QColor colors[] = {QColor("#5268e9"), QColor("#36a98f"), QColor("#7d83d8"), QColor("#d59a36"),
                                   QColor("#4399bf"), QColor("#ac6daf"), QColor("#7286a4"), QColor("#8ba95a")};
         for (int i = 0; i < m_items.size(); ++i) {
@@ -234,20 +277,27 @@ protected:
             if (i == m_focus && hasFocus()) painter.fillRect(row, QColor("#edf2ff"));
             const double fraction = m_total ? qBound(0.0, double(item->allocatedBytes) / double(m_total), 1.0) : 0;
             const QString suffix = QStringLiteral("%1 · %2%").arg(formatBytes(item->allocatedBytes)).arg(fraction * 100, 0, 'f', 1);
+            const int valueWidth = painter.fontMetrics().horizontalAdvance(suffix);
+            const QRect text(row.left()+6, row.top()+2, row.width()-12, fontMetrics().height());
+            const int labelWidth = qMax(24, text.width()-valueWidth-12);
+            textBounds.append(text);
             painter.setPen(QColor("#34415c"));
-            painter.drawText(row.adjusted(6, 0, -6, -13), Qt::AlignLeft | Qt::AlignVCenter,
-                             painter.fontMetrics().elidedText((item->directory ? QStringLiteral("▸ ") : QString()) + singleLine(item->name),
-                                                            Qt::ElideMiddle, qMax(30, row.width() - 155)));
+            painter.drawText(QRect(text.topLeft(), QSize(labelWidth,text.height())), Qt::AlignLeft | Qt::AlignVCenter,
+                painter.fontMetrics().elidedText((item->directory ? QStringLiteral("▸ ") : QString()) + singleLine(item->name),
+                    Qt::ElideMiddle, labelWidth));
             painter.setPen(QColor("#68758e"));
-            painter.drawText(row.adjusted(6, 0, -6, -13), Qt::AlignRight | Qt::AlignVCenter, suffix);
+            painter.drawText(text, Qt::AlignRight | Qt::AlignVCenter, suffix);
             const QRectF track(row.left() + 6, row.bottom() - 10, row.width() - 12, 6);
+            barBounds.append(track.toRect());
             painter.setPen(Qt::NoPen); painter.setBrush(QColor("#eef1f7")); painter.drawRoundedRect(track, 3, 3);
             QRectF bar = track; bar.setWidth(track.width() * fraction);
             if (bar.width() > 0) { painter.setBrush(colors[i]); painter.drawRoundedRect(bar, 3, 3); }
         }
+        setProperty("chartTextRects",textBounds);
+        setProperty("chartBarRects",barBounds);
         painter.setPen(QColor("#8993a7"));
-        painter.drawText(QRect(12, height() - 24, width() - 24, 22), Qt::AlignVCenter,
-                         QStringLiteral("前 %1 项 · 点击进入目录").arg(m_items.size()));
+        painter.drawText(QRect(12, rowsTop()+m_items.size()*rowHeight()+4, width()-24, fontMetrics().height()), Qt::AlignVCenter,
+                         dlTr("前 %1 项 · 点击进入目录").arg(m_items.size()));
     }
 
     void mousePressEvent(QMouseEvent *event) override
@@ -269,9 +319,9 @@ protected:
         bool over = false;
         for (int i = 0; i < m_items.size(); ++i) if (rowRect(i).contains(event->pos())) {
             const auto *node = m_items[i];
-            setToolTip(node->path + QStringLiteral("\n逻辑大小：%1\n实际占用：%2\n%3")
+            setToolTip(node->path + dlTr("\n逻辑大小：%1\n实际占用：%2\n%3")
                 .arg(formatBytes(node->logicalBytes), formatBytes(node->allocatedBytes),
-                     node->directory ? QStringLiteral("点击进入目录") : QStringLiteral("点击在列表中选择文件")));
+                     node->directory ? dlTr("点击进入目录") : dlTr("点击在列表中选择文件")));
             over = true; break;
         }
         setCursor(over ? Qt::PointingHandCursor : Qt::ArrowCursor);
@@ -288,11 +338,35 @@ protected:
         update(); event->accept();
     }
 
+    bool event(QEvent *event) override
+    {
+        const bool result=QWidget::event(event);
+        if (event->type()==QEvent::FontChange || event->type()==QEvent::Polish) updateMinimumHeight();
+        return result;
+    }
+    void resizeEvent(QResizeEvent *event) override
+    {
+        QWidget::resizeEvent(event);
+        if (event->size().width()!=event->oldSize().width()) updateMinimumHeight();
+    }
 private:
+    QRect subtitleRect() const
+    {
+        const int textWidth=qMax(1,width()-24);
+        const int height=fontMetrics().boundingRect(QRect(0,0,textWidth,1000), Qt::TextWordWrap,
+            dlTr("条长 = 项目占用 / 当前目录总占用")).height();
+        return QRect(12, 12+fontMetrics().height(),textWidth,height);
+    }
+    int rowsTop() const { return subtitleRect().bottom()+9; }
+    int rowHeight() const { return fontMetrics().height()+16; }
+    void updateMinimumHeight()
+    {
+        const int needed=qMax(250, rowsTop()+m_items.size()*rowHeight()+fontMetrics().height()+14);
+        if (minimumHeight()!=needed) { setMinimumHeight(needed); updateGeometry(); }
+    }
     QRect rowRect(int index) const
     {
-        const int rowHeight = qMin(45, qMax(22, (height() - 84) / qMax(1, int(m_items.size()))));
-        return QRect(6, 56 + index * rowHeight, width() - 12, rowHeight - 2);
+        return QRect(6, rowsTop()+index*rowHeight(), width()-12, rowHeight()-2);
     }
     QVector<const SpaceNode *> m_items;
     quint64 m_total = 0;
@@ -318,76 +392,81 @@ void ExplorerPage::createUi()
     auto *layout = new QVBoxLayout(this); layout->setContentsMargins(0, 0, 0, 0); layout->setSpacing(12);
     auto *scopeRow = new QHBoxLayout;
     m_rootEdit = new QLineEdit; m_rootEdit->setObjectName(QStringLiteral("explorerRoot"));
-    m_rootEdit->setPlaceholderText(QStringLiteral("选择要分析的目录，如主目录或外置磁盘中的目录"));
-    m_choose = button(QStringLiteral("选择目录"), "explorerChoose", "folder");
-    m_scan = button(QStringLiteral("扫描目录"), "explorerScan", "refresh");
-    m_cancelButton = button(QStringLiteral("取消"), "explorerCancel", "stop");
+    m_rootEdit->setPlaceholderText(dlTr("选择要分析的目录，如主目录或外置磁盘中的目录"));
+    m_choose = button(dlTr("选择目录"), "explorerChoose", "folder");
+    m_scan = button(dlTr("扫描目录"), "explorerScan", "refresh");
+    m_cancelButton = button(dlTr("取消"), "explorerCancel", "stop");
     scopeRow->addWidget(m_rootEdit, 1); scopeRow->addWidget(m_choose); scopeRow->addWidget(m_scan); scopeRow->addWidget(m_cancelButton);
     layout->addLayout(scopeRow);
 
     auto *filterRow = new QHBoxLayout;
     m_search = new QLineEdit; m_search->setObjectName(QStringLiteral("explorerSearch"));
-    m_search->setPlaceholderText(QStringLiteral("筛选名称或完整路径（不影响导出范围）"));
-    m_export = button(QStringLiteral("导出 CSV"), "explorerExport", "files");
-    m_export->setToolTip(QStringLiteral("导出当前目录及子目录，或全部重复分组；包含搜索筛选外的结果。"));
+    m_search->setPlaceholderText(dlTr("筛选名称或完整路径（不影响导出范围）"));
+    m_export = button(dlTr("导出 CSV"), "explorerExport", "files");
+    m_export->setToolTip(dlTr("导出当前目录及子目录，或全部重复分组；包含搜索筛选外的结果。"));
     filterRow->addWidget(m_search, 1); filterRow->addWidget(m_export); layout->addLayout(filterRow);
 
-    m_tabs = new QTabWidget; m_tabs->setObjectName(QStringLiteral("explorerTabs"));
+    m_tabs = new ExplorerTabs; m_tabs->setObjectName(QStringLiteral("explorerTabs"));
     m_tabs->setStyleSheet(QStringLiteral("QTabWidget::pane { border: 0; } QTabBar::tab { padding: 9px 18px; color: #66748e; } QTabBar::tab:selected { background: #e8eeff; color: #435bd9; }"));
     auto *directoryTab = new QWidget; auto *directoryLayout = new QVBoxLayout(directoryTab);
     directoryLayout->setContentsMargins(0, 12, 0, 0); directoryLayout->setSpacing(10);
     auto *navigation = new QHBoxLayout;
-    m_up = button(QStringLiteral("上一级"), "explorerUp"); m_home = button(QStringLiteral("扫描根目录"), "explorerHome");
+    m_up = button(dlTr("上一级"), "explorerUp"); m_home = button(dlTr("扫描根目录"), "explorerHome");
     m_breadcrumb = label(QString(), "explorerBreadcrumb"); m_breadcrumb->setTextInteractionFlags(Qt::TextSelectableByMouse);
     m_breadcrumb->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred);
     navigation->addWidget(m_up); navigation->addWidget(m_home); navigation->addWidget(m_breadcrumb, 1);
     directoryLayout->addLayout(navigation);
-    m_metrics = label(QStringLiteral("尚未扫描"), "explorerMetrics"); m_metrics->setWordWrap(true); directoryLayout->addWidget(m_metrics);
+    m_metrics = label(dlTr("尚未扫描"), "explorerMetrics"); m_metrics->setWordWrap(true); directoryLayout->addWidget(m_metrics);
     auto *splitter = new QSplitter(Qt::Horizontal); splitter->setChildrenCollapsible(false);
     m_tree = new QTreeWidget; m_tree->setObjectName(QStringLiteral("explorerTree"));
-    m_tree->setHeaderLabels({QStringLiteral("名称 / 目录层级"), QStringLiteral("实际占用"), QStringLiteral("逻辑大小"), QStringLiteral("文件数")});
-    styleTree(m_tree); m_tree->header()->setSectionResizeMode(0, QHeaderView::Stretch);
-    for (int column = 1; column < 4; ++column) m_tree->header()->setSectionResizeMode(column, QHeaderView::ResizeToContents);
+    m_tree->setHeaderLabels({dlTr("名称 / 目录层级"), dlTr("实际占用"), dlTr("逻辑大小"), dlTr("文件数")});
+    styleTree(m_tree);
+    // Keep a useful name column even when translated headers or totals grow.
+    // The user can resize every column and scroll horizontally for the rest.
+    m_tree->header()->setStretchLastSection(false);
+    m_tree->header()->setSectionResizeMode(QHeaderView::Interactive);
+    m_tree->setColumnWidth(0, 220); m_tree->setColumnWidth(1, 140);
+    m_tree->setColumnWidth(2, 140); m_tree->setColumnWidth(3, 90);
     m_map = new ExplorerMapWidget;
-    splitter->addWidget(m_tree); splitter->addWidget(m_map); splitter->setStretchFactor(0, 3); splitter->setStretchFactor(1, 2);
+    splitter->addWidget(m_tree); splitter->addWidget(m_map); splitter->setStretchFactor(0, 3); splitter->setStretchFactor(1, 2); splitter->setSizes({540,390});
     directoryLayout->addWidget(splitter, 1);
-    m_directoryNotice = label(QStringLiteral("只读分析；逻辑大小是文件长度，实际占用是文件系统已分配空间，两者可能不同。"), "explorerDirectoryNotice");
+    m_directoryNotice = label(dlTr("只读分析；逻辑大小是文件长度，实际占用是文件系统已分配空间，两者可能不同。"), "explorerDirectoryNotice");
     m_directoryNotice->setWordWrap(true); directoryLayout->addWidget(m_directoryNotice);
-    m_tabs->addTab(directoryTab, QStringLiteral("目录空间分析"));
+    m_tabs->addTab(directoryTab, dlTr("目录空间分析"));
 
     auto *duplicateTab = new QWidget; auto *duplicateLayout = new QVBoxLayout(duplicateTab);
     duplicateLayout->setContentsMargins(0, 12, 0, 0); duplicateLayout->setSpacing(10);
-    auto *duplicateRow = new QHBoxLayout; duplicateRow->addWidget(label(QStringLiteral("最小文件大小")));
+    auto *duplicateRow = new QHBoxLayout; duplicateRow->addWidget(label(dlTr("最小文件大小")));
     m_minimum = new QComboBox; m_minimum->setObjectName(QStringLiteral("explorerMinimum"));
     for (const auto &entry : QVector<QPair<QString, quint64>>{{QStringLiteral("1 KiB"), 1024}, {QStringLiteral("1 MiB"), 1024 * 1024},
              {QStringLiteral("10 MiB"), 10 * 1024 * 1024}, {QStringLiteral("100 MiB"), 100 * 1024 * 1024}})
         m_minimum->addItem(entry.first, QVariant::fromValue<qulonglong>(entry.second));
     m_minimum->setCurrentIndex(1);
-    m_duplicateScan = button(QStringLiteral("查找重复文件"), "explorerDuplicateScan", "search");
+    m_duplicateScan = button(dlTr("查找重复文件"), "explorerDuplicateScan", "search");
     duplicateRow->addWidget(m_minimum); duplicateRow->addStretch(); duplicateRow->addWidget(m_duplicateScan);
     duplicateLayout->addLayout(duplicateRow);
-    m_duplicateSummary = label(QStringLiteral("尚未查找重复文件"), "explorerDuplicateSummary");
+    m_duplicateSummary = label(dlTr("尚未查找重复文件"), "explorerDuplicateSummary");
     m_duplicateSummary->setWordWrap(true); duplicateLayout->addWidget(m_duplicateSummary);
     m_duplicateTree = new QTreeWidget; m_duplicateTree->setObjectName(QStringLiteral("explorerDuplicates"));
-    m_duplicateTree->setHeaderLabels({QStringLiteral("重复分组 / 文件完整路径"), QStringLiteral("单文件大小"), QStringLiteral("逻辑冗余量 / SHA-256")});
+    m_duplicateTree->setHeaderLabels({dlTr("重复分组 / 文件完整路径"), dlTr("单文件大小"), dlTr("逻辑冗余量 / SHA-256")});
     styleTree(m_duplicateTree); m_duplicateTree->header()->setSectionResizeMode(0, QHeaderView::Stretch);
     m_duplicateTree->header()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
     m_duplicateTree->header()->setSectionResizeMode(2, QHeaderView::Interactive); m_duplicateTree->setColumnWidth(2, 180);
     duplicateLayout->addWidget(m_duplicateTree, 1);
-    m_duplicateNotice = label(QStringLiteral("仅在点击查找后读取文件内容：先按大小和采样筛选，再校验完整 SHA-256。逻辑冗余量不是可回收空间；本页不选择保留项，也不删除文件。"), "explorerDuplicateNotice");
+    m_duplicateNotice = label(dlTr("仅在点击查找后读取文件内容：先按大小和采样筛选，再校验完整 SHA-256。逻辑冗余量不是可回收空间；本页不选择保留项，也不删除文件。"), "explorerDuplicateNotice");
     m_duplicateNotice->setWordWrap(true); duplicateLayout->addWidget(m_duplicateNotice);
-    m_tabs->addTab(duplicateTab, QStringLiteral("重复文件")); layout->addWidget(m_tabs, 1);
+    m_tabs->addTab(duplicateTab, dlTr("重复文件")); layout->addWidget(m_tabs, 1);
 
     auto *detailRow = new QHBoxLayout;
-    m_detail = label(QStringLiteral("选择项目可查看完整路径"), "explorerDetail");
-    m_detail->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred); m_detail->setTextInteractionFlags(Qt::TextSelectableByMouse);
-    m_open = button(QStringLiteral("打开所在目录"), "explorerOpen", "folder"); m_copy = button(QStringLiteral("复制路径"), "explorerCopy", "copy");
+    m_detail = label(dlTr("选择项目可查看完整路径"), "explorerDetail");
+    m_detail->setWordWrap(true); m_detail->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Preferred); m_detail->setTextInteractionFlags(Qt::TextSelectableByMouse);
+    m_open = button(dlTr("打开所在目录"), "explorerOpen", "folder"); m_copy = button(dlTr("复制路径"), "explorerCopy", "copy");
     detailRow->addWidget(m_detail, 1); detailRow->addWidget(m_open); detailRow->addWidget(m_copy); layout->addLayout(detailRow);
-    m_status = label(QStringLiteral("尚未扫描"), "explorerStatus"); m_status->setWordWrap(true); layout->addWidget(m_status);
+    m_status = label(dlTr("尚未扫描"), "explorerStatus"); m_status->setWordWrap(true); layout->addWidget(m_status);
     m_progress = new QProgressBar; m_progress->setObjectName(QStringLiteral("explorerProgress")); m_progress->setTextVisible(false); m_progress->setRange(0, 1); layout->addWidget(m_progress);
 
     connect(m_choose, &QPushButton::clicked, this, [this] {
-        const QString root = QFileDialog::getExistingDirectory(this, QStringLiteral("选择分析目录"), m_rootEdit->text());
+        const QString root = QFileDialog::getExistingDirectory(this, dlTr("选择分析目录"), m_rootEdit->text());
         if (!root.isEmpty()) { setRoot(root); if (!m_started) ensureScanStarted(); }
     });
     connect(m_scan, &QPushButton::clicked, this, &ExplorerPage::rescan);
@@ -400,9 +479,9 @@ void ExplorerPage::createUi()
         rebuildDuplicates();
     });
     connect(m_tabs, &QTabWidget::currentChanged, this, [this] { updateControls(); updateSelection(); });
-    connect(m_duplicateScan, &QPushButton::clicked, this, &ExplorerPage::startDuplicateScan);
+    connect(m_duplicateScan, &QPushButton::clicked, this, [this] { startDuplicateScan(); });
     connect(m_minimum, QOverload<int>::of(&QComboBox::currentIndexChanged), this, [this] {
-        if (m_duplicatesDone) m_duplicateNotice->setText(QStringLiteral("最小大小已更改；已有结果仍属于上次扫描。点击“查找重复文件”应用新阈值。"));
+        if (m_duplicatesDone) m_duplicateNotice->setText(dlTr("最小大小已更改；已有结果仍属于上次扫描。点击“查找重复文件”应用新阈值。"));
     });
     connect(m_tree, &QTreeWidget::itemExpanded, this, [this](QTreeWidgetItem *item) {
         if (item->data(0, populatedRole).toBool()) return;
@@ -424,15 +503,15 @@ void ExplorerPage::createUi()
     connect(m_open, &QPushButton::clicked, this, [this] {
         const QString path = selectedPath(); if (path.isEmpty()) return;
         const QFileInfo info(path); const QString directory = info.isDir() ? path : info.absolutePath();
-        if (!QDesktopServices::openUrl(QUrl::fromLocalFile(directory))) m_status->setText(QStringLiteral("无法打开目录：") + directory);
+        if (!QDesktopServices::openUrl(QUrl::fromLocalFile(directory))) m_status->setText(dlTr("无法打开目录：") + directory);
     });
     connect(m_export, &QPushButton::clicked, this, [this] {
-        const QString path = QFileDialog::getSaveFileName(this, QStringLiteral("导出扫描报告"),
-            QDir::home().filePath(m_tabs->currentIndex() == 0 ? QStringLiteral("disklens-space.csv") : QStringLiteral("disklens-duplicates.csv")), QStringLiteral("CSV 报告 (*.csv)"));
+        const QString path = QFileDialog::getSaveFileName(this, dlTr("导出扫描报告"),
+            QDir::home().filePath(m_tabs->currentIndex() == 0 ? QStringLiteral("disklens-space.csv") : QStringLiteral("disklens-duplicates.csv")), dlTr("CSV 报告 (*.csv)"));
         if (path.isEmpty()) return;
         QString error;
-        if (!exportReport(path, &error)) QMessageBox::warning(this, QStringLiteral("导出失败"), error);
-        else m_status->setText(QStringLiteral("报告已导出（包含筛选外结果）：") + path);
+        if (!exportReport(path, &error)) QMessageBox::warning(this, dlTr("导出失败"), error);
+        else m_status->setText(dlTr("报告已导出（包含筛选外结果）：") + path);
     });
     updateControls();
 }
@@ -446,11 +525,12 @@ void ExplorerPage::setRoot(const QString &root)
     m_rootEdit->setText(value); m_rootEdit->setToolTip(value);
     if (m_root == value) return;
     m_root = value; m_currentPath.clear(); m_directoryDone = false; m_duplicatesDone = false;
+    m_duplicatesRequested = false;
     m_directoryResult = {}; m_duplicateResult = {};
     m_map->setNode(nullptr, {}); m_tree->clear(); m_duplicateTree->clear();
-    m_metrics->setText(QStringLiteral("尚未扫描")); m_breadcrumb->setText(QStringLiteral("扫描根目录：") + m_root);
-    m_breadcrumb->setToolTip(m_root); m_duplicateSummary->setText(QStringLiteral("尚未查找重复文件"));
-    m_status->setText(QStringLiteral("所选目录：") + m_root); updateControls(); updateSelection();
+    m_metrics->setText(dlTr("尚未扫描")); m_breadcrumb->setText(dlTr("扫描根目录：") + m_root);
+    m_breadcrumb->setToolTip(m_root); m_duplicateSummary->setText(dlTr("尚未查找重复文件"));
+    m_status->setText(dlTr("所选目录：") + m_root); updateControls(); updateSelection();
     if (m_started) startDirectoryScan();
 }
 
@@ -477,9 +557,9 @@ void ExplorerPage::startDirectoryScan()
     if (isBusy() || m_shuttingDown) return;
     m_busy = true; m_cancel.store(false); m_directoryDone = false;
     m_map->setNode(nullptr, {}); m_tree->clear(); m_currentPath.clear();
-    m_directoryResult = {}; m_metrics->setText(QStringLiteral("正在统计目录…"));
-    m_status->setText(QStringLiteral("只读扫描中：") + m_root);
-    m_directoryNotice->setText(QStringLiteral("正在读取目录元数据；逻辑大小与实际占用分别统计，符号链接与其他挂载点会跳过。"));
+    m_directoryResult = {}; m_metrics->setText(dlTr("正在统计目录…"));
+    m_status->setText(dlTr("只读扫描中：") + m_root);
+    m_directoryNotice->setText(dlTr("正在读取目录元数据；逻辑大小与实际占用分别统计，符号链接与其他挂载点会跳过。"));
     const auto progress = progressHandler(++m_operation); const QString root = m_root;
     updateControls(); updateSelection();
     m_directoryWatcher.setFuture(QtConcurrent::run([this, root, progress] { return analyzeDirectory(root, &m_cancel, progress); }));
@@ -487,22 +567,33 @@ void ExplorerPage::startDirectoryScan()
 
 void ExplorerPage::showDuplicates() { m_tabs->setCurrentIndex(1); }
 
-void ExplorerPage::startDuplicateScan()
+bool ExplorerPage::duplicateScanRequested() const { return m_duplicatesRequested; }
+quint64 ExplorerPage::duplicateMinimum() const { return m_minimum->currentData().toULongLong(); }
+void ExplorerPage::setDuplicateMinimum(quint64 bytes)
 {
-    showDuplicates();
-    if (isBusy()) { m_pendingDuplicates = true; return; }
+    if (isBusy()) return;
+    const int index = m_minimum->findData(QVariant::fromValue<qulonglong>(bytes));
+    if (index >= 0) m_minimum->setCurrentIndex(index);
+}
+
+void ExplorerPage::startDuplicateScan(bool activateTab)
+{
+    if (activateTab) showDuplicates();
+    m_duplicatesRequested = true;
+    if (isBusy()) { m_pendingDuplicates = true; m_pendingDuplicateActivation = activateTab; return; }
     const QString nextRoot = normalizedRoot(m_rootEdit->text());
     if (nextRoot != m_root) {
         // A changed scope first replaces the directory snapshot. Hashing remains
         // queued only because this method itself is an explicit user action.
         setRoot(nextRoot);
-        if (isBusy()) { m_pendingDuplicates = true; return; }
+        m_duplicatesRequested = true;
+        if (isBusy()) { m_pendingDuplicates = true; m_pendingDuplicateActivation = activateTab; return; }
     }
     m_started = true; m_busy = true; m_duplicatesDone = false; m_cancel.store(false);
     m_duplicateResult = {}; m_duplicateTree->clear();
-    m_duplicateSummary->setText(QStringLiteral("正在按大小、采样及完整 SHA-256 查找…"));
-    m_duplicateNotice->setText(QStringLiteral("正在读取候选文件内容。取消会保留已验证的部分分组；本页不执行删除。"));
-    m_status->setText(QStringLiteral("重复检测中：") + m_root);
+    m_duplicateSummary->setText(dlTr("正在按大小、采样及完整 SHA-256 查找…"));
+    m_duplicateNotice->setText(dlTr("正在读取候选文件内容。取消会保留已验证的部分分组；本页不执行删除。"));
+    m_status->setText(dlTr("重复检测中：") + m_root);
     const auto progress = progressHandler(++m_operation); const QString root = m_root;
     const quint64 minimum = m_minimum->currentData().toULongLong(); m_duplicateMinimum = minimum;
     updateControls(); updateSelection();
@@ -519,7 +610,7 @@ std::function<void(quint64, const QString &)> ExplorerPage::progressHandler(quin
         if (!self) return;
         QMetaObject::invokeMethod(self.data(), [self, operation, scanned, path] {
             if (!self || self->m_shuttingDown || !self->m_busy || self->m_operation != operation) return;
-            self->m_status->setText(QStringLiteral("已检查 %1 个文件 · %2").arg(count(scanned), path));
+            self->m_status->setText(dlTr("已检查 %1 个文件 · %2").arg(count(scanned), path));
             self->m_status->setToolTip(path);
         }, Qt::QueuedConnection);
     };
@@ -530,17 +621,20 @@ void ExplorerPage::directoryFinished()
     if (m_shuttingDown) return;
     m_directoryResult = m_directoryWatcher.result(); m_directoryDone = true; m_busy = false;
     m_status->setText(completion(m_directoryResult.canceled, m_directoryResult.truncated, m_directoryResult.skippedEntries, m_directoryResult.error));
-    m_directoryNotice->setText(QStringLiteral("%1逻辑大小是文件长度；实际占用含目录元数据，硬链接只计一次。")
-        .arg(partial(m_directoryResult) ? QStringLiteral("部分结果。") : QString()));
+    m_directoryNotice->setText(dlTr("%1逻辑大小是文件长度；实际占用含目录元数据，硬链接只计一次。")
+        .arg(partial(m_directoryResult) ? dlTr("部分结果。") : QString()));
     if (m_directoryResult.root.directory) showDirectory(m_directoryResult.root.path);
     else {
         m_currentPath = m_root;
-        m_metrics->setText(QStringLiteral("未获得可分析的目录结果；请检查路径与访问权限。"));
+        m_metrics->setText(dlTr("未获得可分析的目录结果；请检查路径与访问权限。"));
     }
     updateControls();
     if (m_pendingScan) {
         const QString root = m_pendingRoot; m_pendingScan = false; m_pendingRoot.clear(); setRoot(root);
-    } else if (m_pendingDuplicates) { m_pendingDuplicates = false; startDuplicateScan(); }
+    } else if (m_pendingDuplicates) {
+        const bool activateTab = m_pendingDuplicateActivation;
+        m_pendingDuplicates = false; startDuplicateScan(activateTab);
+    }
 }
 
 void ExplorerPage::duplicatesFinished()
@@ -548,19 +642,23 @@ void ExplorerPage::duplicatesFinished()
     if (m_shuttingDown) return;
     m_duplicateResult = m_duplicateWatcher.result(); m_duplicatesDone = true; m_busy = false;
     m_status->setText(completion(m_duplicateResult.canceled, m_duplicateResult.truncated, m_duplicateResult.skippedEntries, m_duplicateResult.error));
-    m_duplicateNotice->setText(QStringLiteral("%1完整 SHA-256 验证；逻辑冗余量不等于可回收空间，不自动选择保留项或删除文件。")
-        .arg(partial(m_duplicateResult) ? QStringLiteral("部分结果。") : QString()));
+    m_duplicateNotice->setText(dlTr("%1完整 SHA-256 验证；逻辑冗余量不等于可回收空间，不自动选择保留项或删除文件。")
+        .arg(partial(m_duplicateResult) ? dlTr("部分结果。") : QString()));
     rebuildDuplicates(); updateControls(); updateSelection();
     if (m_pendingScan) {
         const QString root = m_pendingRoot; m_pendingScan = false; m_pendingRoot.clear(); setRoot(root);
-    } else if (m_pendingDuplicates) { m_pendingDuplicates = false; startDuplicateScan(); }
+    } else if (m_pendingDuplicates) {
+        const bool activateTab = m_pendingDuplicateActivation;
+        m_pendingDuplicates = false; startDuplicateScan(activateTab);
+    }
 }
 
 void ExplorerPage::cancelWork()
 {
+    m_duplicatesRequested = false;
     if (!isBusy()) return;
     m_cancel.store(true); m_pendingDuplicates = false;
-    m_status->setText(QStringLiteral("正在取消；等待当前读取结束并保留已完成的部分结果…"));
+    m_status->setText(dlTr("正在取消；等待当前读取结束并保留已完成的部分结果…"));
     m_cancelButton->setEnabled(false);
 }
 
@@ -585,7 +683,7 @@ void ExplorerPage::addChildren(QTreeWidgetItem *parent, const SpaceNode &node)
         item->setData(0, pathRole, child->path); item->setData(0, directoryRole, child->directory);
         item->setData(0, populatedRole, false); item->setIcon(0, lineIcon(child->directory ? "folder" : "files"));
         for (int column = 0; column < 4; ++column) item->setToolTip(column, child->path
-            + QStringLiteral("\n实际占用：%1\n逻辑大小：%2\n文件数：%3").arg(formatBytes(child->allocatedBytes), formatBytes(child->logicalBytes), count(child->fileCount)));
+            + dlTr("\n实际占用：%1\n逻辑大小：%2\n文件数：%3").arg(formatBytes(child->allocatedBytes), formatBytes(child->logicalBytes), count(child->fileCount)));
         for (int column = 1; column < 4; ++column) item->setTextAlignment(column, Qt::AlignRight | Qt::AlignVCenter);
         if (parent) parent->addChild(item); else m_tree->addTopLevelItem(item);
         if (child->directory && !child->children.isEmpty()) item->setChildIndicatorPolicy(QTreeWidgetItem::ShowIndicator);
@@ -598,12 +696,12 @@ void ExplorerPage::showDirectory(const QString &path)
     m_currentPath = node->path;
     m_tree->clear(); addChildren(nullptr, *node); m_map->setNode(node, m_search->text().trimmed());
     QString relative = QDir(m_directoryResult.root.path).relativeFilePath(node->path);
-    m_breadcrumb->setText(relative == QStringLiteral(".") ? QStringLiteral("扫描根目录：") + node->path
-        : QStringLiteral("当前层：") + relative.replace(QLatin1Char('/'), QStringLiteral(" / ")));
+    m_breadcrumb->setText(relative == QStringLiteral(".") ? dlTr("扫描根目录：") + node->path
+        : dlTr("当前层：") + relative.replace(QLatin1Char('/'), QStringLiteral(" / ")));
     m_breadcrumb->setToolTip(node->path);
-    m_metrics->setText(QStringLiteral("实际占用 %1   ·   逻辑大小 %2   ·   %3 个文件   ·   当前层 %4 项%5")
+    m_metrics->setText(dlTr("实际占用 %1   ·   逻辑大小 %2   ·   %3 个文件   ·   当前层 %4 项%5")
         .arg(formatBytes(node->allocatedBytes), formatBytes(node->logicalBytes), count(node->fileCount), count(node->children.size()),
-             partial(m_directoryResult) ? QStringLiteral("   ·   部分结果") : QString()));
+             partial(m_directoryResult) ? dlTr("   ·   部分结果") : QString()));
     updateControls(); updateSelection();
 }
 
@@ -625,23 +723,23 @@ void ExplorerPage::rebuildDuplicates()
         ++visible; auto *item = new QTreeWidgetItem(m_duplicateTree);
         item->setFlags(item->flags() & ~Qt::ItemIsUserCheckable);
         const quint64 redundant = quint64(qMax(0, int(group.paths.size()) - 1)) * group.bytes;
-        item->setText(0, QStringLiteral("分组 %1 · %2 个相同文件").arg(groupIndex + 1).arg(group.paths.size()));
-        item->setText(1, formatBytes(group.bytes)); item->setText(2, formatBytes(redundant) + QStringLiteral(" 逻辑冗余"));
+        item->setText(0, dlTr("分组 %1 · %2 个相同文件").arg(groupIndex + 1).arg(group.paths.size()));
+        item->setText(1, formatBytes(group.bytes)); item->setText(2, formatBytes(redundant) + dlTr(" 逻辑冗余"));
         const QString hash = QString::fromLatin1(group.sha256.toHex());
-        for (int column = 0; column < 3; ++column) item->setToolTip(column, QStringLiteral("完整 SHA-256：") + hash
-            + QStringLiteral("\n逻辑冗余量 = (%1 − 1) × %2，不代表可回收空间").arg(group.paths.size()).arg(formatBytes(group.bytes)));
+        for (int column = 0; column < 3; ++column) item->setToolTip(column, dlTr("完整 SHA-256：") + hash
+            + dlTr("\n逻辑冗余量 = (%1 − 1) × %2，不代表可回收空间").arg(group.paths.size()).arg(formatBytes(group.bytes)));
         for (const QString &path : group.paths) {
             auto *child = new QTreeWidgetItem(item); child->setText(0, singleLine(path)); child->setText(1, formatBytes(group.bytes)); child->setText(2, hash);
             child->setFlags(child->flags() & ~Qt::ItemIsUserCheckable);
             child->setData(0, pathRole, path);
-            for (int column = 0; column < 3; ++column) child->setToolTip(column, path + QStringLiteral("\n完整 SHA-256：") + hash);
+            for (int column = 0; column < 3; ++column) child->setToolTip(column, path + dlTr("\n完整 SHA-256：") + hash);
         }
         item->setExpanded(true);
     }
-    m_duplicateSummary->setText(QStringLiteral("%1 个重复分组（显示 %2） · 逻辑冗余 %3 · 检查 %4 个文件 · 完整校验 %5 个文件%6")
+    m_duplicateSummary->setText(dlTr("%1 个重复分组（显示 %2） · 逻辑冗余 %3 · 检查 %4 个文件 · 完整校验 %5 个文件%6")
         .arg(count(m_duplicateResult.groups.size()), count(visible), formatBytes(m_duplicateResult.redundantBytes),
              count(m_duplicateResult.scannedFiles), count(m_duplicateResult.hashedFiles),
-             partial(m_duplicateResult) ? QStringLiteral(" · 部分结果") : QString()));
+             partial(m_duplicateResult) ? dlTr(" · 部分结果") : QString()));
     updateSelection();
 }
 
@@ -653,7 +751,7 @@ QString ExplorerPage::selectedPath() const
 
 void ExplorerPage::updateSelection()
 {
-    const QString path = selectedPath(); m_detail->setText(path.isEmpty() ? QStringLiteral("选择项目可查看完整路径；重复分组请选中具体文件") : singleLine(path));
+    const QString path = selectedPath(); m_detail->setText(path.isEmpty() ? dlTr("选择项目可查看完整路径；重复分组请选中具体文件") : singleLine(path));
     m_detail->setToolTip(path); m_copy->setEnabled(!path.isEmpty()); m_open->setEnabled(!path.isEmpty());
 }
 
@@ -671,7 +769,7 @@ bool ExplorerPage::exportReport(const QString &path, QString *error) const
 {
     const bool duplicates = m_tabs->currentIndex() == 1;
     if (m_busy || (duplicates ? !m_duplicatesDone : !m_directoryDone)) {
-        if (error) *error = QStringLiteral("请先完成当前页的扫描。");
+        if (error) *error = dlTr("请先完成当前页的扫描。");
         return false;
     }
     const QFileInfo destination(path);
@@ -686,7 +784,7 @@ bool ExplorerPage::exportReport(const QString &path, QString *error) const
     // never turn a read-only report into data loss. Check both lexical and real
     // paths so an external symlink cannot alias an existing scanned file.
     if (destination.isDir() || (inScanRoot && (destination.exists() || destination.isSymLink()))) {
-        if (error) *error = QStringLiteral("为保护扫描数据，不能覆盖扫描目录中已有的文件。请使用新文件名，或将报告保存到扫描目录之外。");
+        if (error) *error = dlTr("为保护扫描数据，不能覆盖扫描目录中已有的文件。请使用新文件名，或将报告保存到扫描目录之外。");
         return false;
     }
     // QSaveFile alone replaces a destination created after the existence check.
@@ -749,7 +847,7 @@ bool ExplorerPage::exportReport(const QString &path, QString *error) const
         return false;
     }
     if (inScanRoot && ::link(QFile::encodeName(commitPath).constData(), QFile::encodeName(absoluteOutput).constData()) != 0) {
-        if (error) *error = QStringLiteral("无法安全创建报告（不会覆盖已有数据）：%1")
+        if (error) *error = dlTr("无法安全创建报告（不会覆盖已有数据）：%1")
             .arg(QString::fromLocal8Bit(std::strerror(errno)));
         return false;
     }
@@ -760,15 +858,15 @@ bool ExplorerPage::exportReport(const QString &path, QString *error) const
 bool ExplorerPage::verifyUi(QString *error)
 {
     const auto fail = [error](const QString &message) { if (error) *error = message; return false; };
-    if (!m_tree || !m_map || !m_duplicateTree || !m_tabs) return fail(QStringLiteral("空间分析控件缺失"));
-    if (m_tabs->count() != 2) return fail(QStringLiteral("空间分析 tab 数量错误"));
-    if (m_export->isEnabled() && m_busy) return fail(QStringLiteral("扫描中不应允许导出旧结果"));
+    if (!m_tree || !m_map || !m_duplicateTree || !m_tabs) return fail(dlTr("空间分析控件缺失"));
+    if (m_tabs->count() != 2) return fail(dlTr("空间分析 tab 数量错误"));
+    if (m_export->isEnabled() && m_busy) return fail(dlTr("扫描中不应允许导出旧结果"));
     if (m_tree->palette().color(QPalette::HighlightedText).lightness() > 160)
-        return fail(QStringLiteral("选中行文字颜色对比不足"));
+        return fail(dlTr("选中行文字颜色对比不足"));
     for (const auto *tree : {m_tree, m_duplicateTree}) {
         QTreeWidgetItemIterator iterator(const_cast<QTreeWidget *>(tree));
         while (*iterator) {
-            if ((*iterator)->flags() & Qt::ItemIsUserCheckable) return fail(QStringLiteral("只读列表不应包含删除勾选框"));
+            if ((*iterator)->flags() & Qt::ItemIsUserCheckable) return fail(dlTr("只读列表不应包含删除勾选框"));
             ++iterator;
         }
     }
