@@ -24,6 +24,9 @@
   <categories><category>System</category><category>Utility</category></categories>
   <content_rating type="oars-1.1"/>
   <releases>
+    <release version="1.2.0" date="2026-10-18">
+      <description><p>Interactive directory analysis, complete SHA-256 duplicate detection, developer workspace classification and application storage attribution.</p></description>
+    </release>
     <release version="1.1.2" date="2026-10-18">
       <description><p>Multi-version Ubuntu builds for x86_64 and ARM64, refreshed icons and bilingual project documentation.</p></description>
     </release>

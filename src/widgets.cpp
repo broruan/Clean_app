@@ -118,6 +118,12 @@ QString applicationStyle()
     QTableView { background: #fff; border: 0; outline: 0; gridline-color: #f2f4f8; selection-background-color: #edf2ff; }
     QHeaderView::section { background: #f9fafc; color: #929caf; border: 0; border-bottom: 1px solid #edf0f5; padding: 12px 16px; font-size: 11px; text-align: left; }
     QTableView::item { padding: 8px 16px; }
+    QTreeView { background: white; border: 0; outline: 0; selection-background-color: #edf2ff; selection-color: #29364f; }
+    QTreeView::item { padding: 7px 5px; }
+    QTreeView::item:selected { color: #29364f; background: #edf2ff; }
+    QTabWidget::pane { border: 1px solid #e6eaf2; border-radius: 9px; background: white; }
+    QTabBar::tab { color: #66748e; background: #f1f4fa; padding: 10px 22px; border: 0; margin-right: 3px; }
+    QTabBar::tab:selected { color: #435dd0; background: white; font-weight: 600; }
     QScrollBar:vertical { background: transparent; width: 8px; margin: 2px; }
     QScrollBar::handle:vertical { background: #dce2ed; min-height: 30px; border-radius: 3px; }
     QScrollBar::add-line:vertical, QScrollBar::sub-line:vertical { height: 0; }

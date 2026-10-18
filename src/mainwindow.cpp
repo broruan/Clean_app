@@ -1,6 +1,9 @@
 #include "mainwindow.h"
 #include "filescanner.h"
 #include "cachepage.h"
+#include "explorerpage.h"
+#include "developerpage.h"
+#include "appstoragedialog.h"
 #include "models.h"
 #include "packagebackend.h"
 #include "uninstallcontroller.h"
@@ -133,6 +136,8 @@ MainWindow::MainWindow(QWidget *parent) : QMainWindow(parent)
 MainWindow::~MainWindow()
 {
     m_cachePage->cancelWork();
+    m_explorerPage->cancelWork();
+    m_developerPage->cancelWork();
     m_cancelScan.store(true);
     m_scanWatcher.waitForFinished();
     m_inventoryWatcher.waitForFinished();
@@ -145,14 +150,24 @@ void MainWindow::closeEvent(QCloseEvent *event)
     }
     if (m_uninstaller->isBusy()) m_uninstaller->cancelPreview();
     m_cachePage->cancelWork();
+    m_explorerPage->cancelWork();
+    m_developerPage->cancelWork();
     m_cancelScan.store(true);
     event->accept();
 }
-void MainWindow::setScanRoot(const QString &path) { m_scanPath->setText(QDir::cleanPath(QFileInfo(path).absoluteFilePath())); }
+void MainWindow::setScanRoot(const QString &path)
+{
+    const QString root = QDir::cleanPath(QFileInfo(path).absoluteFilePath());
+    m_scanPath->setText(root);
+    m_explorerPage->setRoot(root);
+    m_developerPage->setRoot(root);
+}
 bool MainWindow::isSettled() const
 {
     return m_inventoryDone && m_scanDone && !m_inventoryWatcher.isRunning() && !m_scanWatcher.isRunning()
-        && (!m_cacheRequested || m_cachePage->isSettled());
+        && (!m_cacheRequested || m_cachePage->isSettled())
+        && (!m_explorerRequested || m_explorerPage->isSettled())
+        && (!m_developerRequested || m_developerPage->isSettled());
 }
 
 void MainWindow::createUi()
@@ -164,8 +179,8 @@ void MainWindow::createUi()
     auto *brandRow=new QHBoxLayout; brandRow->setSpacing(11); brandRow->addWidget(logo); brandRow->addWidget(label("DiskLens","brand")); brandRow->addStretch();
     side->addLayout(brandRow); side->addWidget(label(QStringLiteral("磁盘透镜  /  空间管理"),"brandSub")); side->addSpacing(37);
     side->addWidget(label(QStringLiteral("工作空间"),"sideCaption")); side->addSpacing(5);
-    const QStringList names{QStringLiteral("空间总览"),QStringLiteral("已安装软件"),QStringLiteral("大文件"),QStringLiteral("缓存与日志")};
-    const QStringList icons{"grid","apps","files","trash"};
+    const QStringList names{QStringLiteral("空间总览"),QStringLiteral("已安装软件"),QStringLiteral("大文件"),QStringLiteral("缓存与日志"),QStringLiteral("空间分析"),QStringLiteral("开发环境")};
+    const QStringList icons{"grid","apps","files","trash","grid","folder"};
     for(int i=0;i<names.size();++i) {
         auto *nav=button(names[i]); nav->setObjectName("navButton"); nav->setCheckable(true);
         nav->setIcon(lineIcon(icons[i],QColor("#a4b4d2"))); nav->setIconSize({20,20});
@@ -184,11 +199,15 @@ void MainWindow::createUi()
     m_refresh=button(QStringLiteral("刷新数据"),"refresh"); connect(m_refresh,&QPushButton::clicked,this,[this]{
         reloadInventory();refreshStorage();
         if(m_pages->currentIndex()==3)m_cachePage->rescan();
+        if(m_pages->currentIndex()==4)m_explorerPage->rescan();
+        if(m_pages->currentIndex()==5)m_developerPage->rescan();
     }); header->addWidget(m_refresh);
     content->addLayout(header);
     m_inventoryProgress=new QProgressBar; m_inventoryProgress->setRange(0,0); m_inventoryProgress->setTextVisible(false); m_inventoryProgress->setFixedHeight(3); content->addWidget(m_inventoryProgress);
     m_pages=new QStackedWidget; m_pages->addWidget(createOverview()); m_pages->addWidget(createAppsPage()); m_pages->addWidget(createFilesPage());
     m_cachePage=new CachePage; m_pages->addWidget(m_cachePage);
+    m_explorerPage=new ExplorerPage; m_pages->addWidget(m_explorerPage);
+    m_developerPage=new DeveloperPage; m_pages->addWidget(m_developerPage);
     connect(m_cachePage,&CachePage::spaceChanged,this,[this]{refreshStorage();if(!m_scanActive)startScan();});
     content->addWidget(m_pages,1);
     auto *bottom=new QHBoxLayout; bottom->addWidget(label(QStringLiteral("●  仅显示本机已安装软件"),"muted")); bottom->addStretch(); m_updateLabel=label(QStringLiteral("正在读取本机数据…"),"muted"); bottom->addWidget(m_updateLabel); content->addLayout(bottom);
@@ -250,6 +269,8 @@ QWidget *MainWindow::createAppsPage()
     layout->addWidget(panel,1);
     auto *footer=card(); auto *footerLayout=new QHBoxLayout(footer); footerLayout->setContentsMargins(18,14,18,14); footerLayout->setSpacing(18);
     m_appDetail=label(QStringLiteral("选择一款软件，查看详情或卸载。"),"muted"); m_appDetail->setWordWrap(true); m_appDetail->setTextInteractionFlags(Qt::TextSelectableByMouse); footerLayout->addWidget(m_appDetail,1);
+    m_appStorage=button(QStringLiteral("空间画像"),"folder"); m_appStorage->setObjectName("appStorageButton"); m_appStorage->setEnabled(false);
+    connect(m_appStorage,&QPushButton::clicked,this,&MainWindow::showAppStorage); footerLayout->addWidget(m_appStorage);
     m_remove=button(QStringLiteral("卸载软件"),"trash","danger"); m_remove->setEnabled(false); connect(m_remove,&QPushButton::clicked,this,&MainWindow::beginUninstall); footerLayout->addWidget(m_remove); layout->addWidget(footer);
     auto *cancelPreview=button(QStringLiteral("取消分析"));cancelPreview->hide();footerLayout->addWidget(cancelPreview);
     connect(cancelPreview,&QPushButton::clicked,this,[this]{m_uninstaller->cancelPreview();updateAppSelection();});
@@ -289,9 +310,11 @@ void MainWindow::setPage(int page)
 {
     m_pages->setCurrentIndex(page);
     for(int i=0;i<m_nav.size();++i)m_nav[i]->setChecked(i==page);
-    m_title->setText(QStringList{QStringLiteral("你的磁盘，一目了然"),QStringLiteral("管理已安装的软件"),QStringLiteral("找到占空间的大文件"),QStringLiteral("清理缓存与日志")}.value(page));
-    m_subtitle->setText(QStringList{QStringLiteral("了解空间去向，让每一份存储都有迹可循。"),QStringLiteral("查看软件体积与来源，按需卸载不再使用的软件。"),QStringLiteral("从一个目录开始，查看体积最大的文件。"),QStringLiteral("按应用查看缓存占用，勾选后批量清理。")}.value(page));
+    m_title->setText(QStringList{QStringLiteral("你的磁盘，一目了然"),QStringLiteral("管理已安装的软件"),QStringLiteral("找到占空间的大文件"),QStringLiteral("清理缓存与日志"),QStringLiteral("逐层看清空间去向"),QStringLiteral("看懂开发环境占用")}.value(page));
+    m_subtitle->setText(QStringList{QStringLiteral("了解空间去向，让每一份存储都有迹可循。"),QStringLiteral("查看软件体积与来源，关联用户数据，按需卸载。"),QStringLiteral("从一个目录开始，查看体积最大的文件。"),QStringLiteral("按应用查看缓存占用，勾选后批量清理。"),QStringLiteral("目录分层分析、完整内容校验与只读报告。"),QStringLiteral("识别构建产物、开发缓存与原始数据，先看用途再决定。")}.value(page));
     if(page==3){m_cacheRequested=true;m_cachePage->ensureScanStarted();}
+    if(page==4){m_explorerRequested=true;m_explorerPage->ensureScanStarted();}
+    if(page==5){m_developerRequested=true;m_developerPage->ensureScanStarted();}
 }
 
 void MainWindow::refreshStorage()
@@ -351,6 +374,7 @@ void MainWindow::updateAppSelection()
 {
     if(!m_remove)return;
     const auto *entry=selectedApp(); m_remove->setEnabled(entry && entry->removable && !m_uninstaller->isBusy());
+    m_appStorage->setEnabled(entry && !m_uninstaller->isBusy());
     if(!entry){m_appDetail->setText(m_appFilter->rowCount()==0&&m_inventoryDone?QStringLiteral("没有匹配的软件。可更换筛选条件或搜索词。 "):QStringLiteral("选择一款软件，查看详情或卸载。"));return;}
     QString detail=entry->name+"  ·  "+entry->id;
     if(!entry->removable)detail+=QStringLiteral("\n系统组件受保护：")+entry->protectionReason;
@@ -446,6 +470,13 @@ void MainWindow::beginUninstall()
     const auto *entry=selectedApp();if(!entry||!entry->removable||m_uninstaller->isBusy())return;
     m_pendingName=entry->name;m_uninstaller->preview(*entry);
 }
+void MainWindow::showAppStorage()
+{
+    const auto *entry = selectedApp();
+    if (!entry || m_uninstaller->isBusy()) return;
+    AppStorageDialog dialog(*entry, this);
+    dialog.exec();
+}
 void MainWindow::showRemovalPreview(const QString &summary,const QStringList &affected)
 {
     QDialog dialog(this);dialog.setWindowTitle(QStringLiteral("确认卸载软件"));dialog.setMinimumWidth(580);
@@ -486,6 +517,8 @@ bool MainWindow::verifyUi(QString *error)
     m_fileSearch->clear();if(m_fileFilter->rowCount()!=fileCount){*error="file search reset failed";return false;}
     if(!m_scanResult.error.isEmpty()){*error=m_scanResult.error;return false;}
     if(m_cacheRequested && !m_cachePage->verifyUi(error))return false;
+    if(m_explorerRequested && !m_explorerPage->verifyUi(error))return false;
+    if(m_developerRequested && !m_developerPage->verifyUi(error))return false;
     m_appsTable->setCurrentIndex({});m_appsTable->clearSelection();m_appsTable->scrollToTop();updateAppSelection();
     m_filesTable->setCurrentIndex({});m_filesTable->clearSelection();m_filesTable->scrollToTop();updateFileSelection();
     qInfo("UI smoke check: %d packages, %d desktop apps, %d large-file rows",m_appModel->rowCount(),before,m_fileModel->rowCount());

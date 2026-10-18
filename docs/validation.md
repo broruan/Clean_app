@@ -2,6 +2,12 @@
 
 [Build instructions](building.md) · [CI runs](https://github.com/broruan/Clean_app/actions/workflows/build.yml)
 
+## Version 1.2.0 / 版本 1.2.0
+
+Local Ubuntu 22.04 amd64 / Qt 5.15.3: all **11 CTest targets** passed, and the updated application passed read-only smoke checks for overview, cache, explorer, duplicates and developer pages using disposable fixtures. Release CI results must be checked on the exact tag; the previous 1.1.2 evidence below remains historical.
+
+本机 Ubuntu 22.04 amd64 / Qt 5.15.3 的 **11 个 CTest 目标**全部通过，使用临时样例对总览、缓存、目录分析、重复文件和开发环境页面运行只读检查并截图。新版发布矩阵以对应标签的实际 CI 为准；下方 1.1.2 记录保留为历史证据。
+
 ## Release v1.1.2 / 已验证发布
 
 On 2026-10-18, [release CI run #5](https://github.com/broruan/Clean_app/actions/runs/39088717438) completed successfully for tag [`v1.1.2`](https://github.com/broruan/Clean_app/tree/v1.1.2), commit `eb7fa7a`. All six native jobs completed compilation, all five CTest targets, DEB verification, package installation, and a read-only offscreen smoke check. Release assets were downloaded again and all six DEBs matched `SHA256SUMS`.
@@ -33,6 +39,9 @@ For version 1.1.2 on Ubuntu 22.04 `amd64` with Qt 5, a fresh release build passe
 | `uninstall` | Identifier validation, protected-component checks, preview lifecycle, and harmless read-only APT simulation where its fixture application exists. It does not perform real uninstall. |
 | `cache` | Cache / log classification; selected-file deletion in temporary directories; unchanged-file checks; links, replacement, ownership, mount / root and manifest validation; cancellation. |
 | `cachepage` | Production Fusion style and stylesheet; visible checkbox and whole-row clicks; Space selection; focused / unfocused selection contrast; filtering, confirmation, temporary-file deletion, and rescan. |
+| `spaceanalyzer` / `explorerpage` | Directory aggregation and navigation, complete duplicate verification beyond matching samples, changing-file rejection, resource limits, cancellation, reports and production-style interaction. |
+| `developer` / `developerpage` | Structural classification, raw-data descriptions, nested/hard-link accounting, partial reports and production-style filtering/selection. |
+| `appstorage` / `appstoragedialog` | Exact namespaces/catalog, separately measured data, unknown association and styled read-only inspection. |
 | Package checks | Debian metadata, declared architecture, bundled executable / desktop entry / icon, generated dependency declarations, and artifact naming. |
 | CI package installation and smoke | Installation in the CI environment followed by a read-only offscreen UI check over a temporary directory. |
 
@@ -65,6 +74,9 @@ Include the release tag or commit, Ubuntu version, architecture, Qt version, exa
 | `uninstall` | 非法标识、系统组件保护、预览生命周期、存在样例应用时的无害 APT 只读模拟；不实际卸载。 |
 | `cache` | 缓存日志分类、临时目录内所选文件删除、文件变化复核、链接与替换、所有权、挂载与根目录、快照校验、取消。 |
 | `cachepage` | 正式 Fusion 风格与完整样式；可见复选框、整行和空格勾选；有无焦点时选中数字对比度；筛选、确认、临时文件删除与重扫。 |
+| `spaceanalyzer` / `explorerpage` | 目录累加与逐层导航、采样碰撞后的完整哈希、变化文件排除、上限、取消、报告及正式样式交互。 |
+| `developer` / `developerpage` | 结构分类、原始数据说明、嵌套与硬链接计量、部分报告及正式样式筛选选择。 |
+| `appstorage` / `appstoragedialog` | 精确命名空间和目录规则、独立计量、未知关联说明及只读界面。 |
 | 安装包检查 | Debian 元数据、架构、可执行文件、桌面入口、图标、依赖声明与产物命名。 |
 | CI 安装与只读界面检查 | 在 CI 环境安装生成包，再对临时目录运行离屏只读检查。 |
 

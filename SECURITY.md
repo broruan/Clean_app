@@ -43,3 +43,9 @@ DiskLens 使用当前登录用户权限运行，缓存清理不提权。软件�
 程序不是对抗同一账户下恶意进程的沙箱。POSIX 的校验与 `unlinkat` 并非一个原子操作，无法完全排除同用户进程在该短暂间隔替换文件。软件包预览和执行也彼此分离，请避免并发包管理操作。
 
 超出配置根目录的意外访问、绕过系统软件包保护、参数注入、非预期提权、未按流程确认就删除等问题属于安全相关报告。单纯的空间估算误差通常属于正确性问题；如伴随非预期破坏行为，请一并说明。
+
+## Analysis and reports / 分析与报告
+
+Directory analysis uses metadata; duplicate detection explicitly reads candidate contents for complete SHA-256 verification, and developer classification reads bounded marker files. These features do not execute project code, package hooks, Conda/Docker commands, or deletion. Analysis results are snapshots of a changing filesystem. Report export is an explicit write to a user-selected path; it refuses to overwrite existing inputs under the scanned root and escapes spreadsheet formula prefixes. Do not treat a duplicate hash or rebuildability description as authorization to remove data.
+
+目录分析读取元数据；重复检测在显式发起后读取候选内容进行完整 SHA-256 校验，开发分类会限量读取标记文件。这些功能不执行项目代码、安装钩子、Conda/Docker 命令或删除。结果是变化中文件系统的扫描快照。报告导出会显式写入用户选择的位置，拒绝覆盖扫描根目录内已有输入，并转义电子表格公式前缀。重复哈希或可重建性说明不构成删除数据的授权。

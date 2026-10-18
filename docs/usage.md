@@ -45,7 +45,7 @@ Flatpak removes the selected complete application reference from its user or sys
 
 Choose a directory and a threshold of 10 MiB, 100 MiB, 500 MiB, or 1 GiB. Start, stop, or repeat a scan. The table retains the largest 500 matching files; totals include all matched files, even those outside the table. You can filter results, copy a path, and open a containing folder. There is no delete operation on this page.
 
-Scanning reads path and file metadata, not file contents. Hidden files are included. Symlinks, special files, and other mounts are skipped; hard links are counted once. The root path and its ancestors must not contain symlinks. Permission failures, inaccessible paths, and changing entries can produce skipped items or partial results. Sparse files have distinct logical and allocated sizes.
+The large-file scan reads path and file metadata, not file contents. The separate duplicate checker reads candidate contents after explicit activation; developer classification reads small marker files. Hidden files are included. Symlinks, special files, and other mounts are skipped; hard links are counted once. The root path and its ancestors must not contain symlinks. Permission failures, inaccessible paths, and changing entries can produce skipped items or partial results. Sparse files have distinct logical and allocated sizes.
 
 ### Caches & logs — 缓存与日志
 
@@ -109,7 +109,7 @@ Flatpak 通过 `--app --no-related` 卸载用户或系统安装范围内的所�
 
 选择目录与 10 MiB、100 MiB、500 MiB、1 GiB 阈值，开始、停止或重新扫描。表格最多保留最大的 500 个匹配文件，总数和总逻辑体积包含全部匹配项。可筛选文件、复制路径、打开所在目录，此页没有删除功能。
 
-扫描只检查路径与文件元数据，不读取内容。包含隐藏文件，跳过软链接、特殊文件和其他挂载点，硬链接只计一次。扫描根路径及其祖先不能包含软链接。权限不足、路径不可访问或条目变化可能导致跳过项或部分结果。稀疏文件的逻辑大小与实际分配空间不同。
+大文件扫描只检查路径与文件元数据，不读取内容。独立的重复检测在显式启动后读取候选文件内容；开发目录识别会限量读取标记文件。包含隐藏文件，跳过软链接、特殊文件和其他挂载点，硬链接只计一次。扫描根路径及其祖先不能包含软链接。权限不足、路径不可访问或条目变化可能导致跳过项或部分结果。稀疏文件的逻辑大小与实际分配空间不同。
 
 ### 缓存与日志
 
@@ -131,3 +131,9 @@ Flatpak 通过 `--app --no-related` 卸载用户或系统安装范围内的所�
 这些检查不能作为对抗同一用户身份下恶意进程的安全隔离边界：POSIX 没有按 inode 条件原子删除的接口，检查与删除之间仍有很小的竞争窗口。详见 [SECURITY.md](../SECURITY.md)。
 
 实际占用与删除占用来自文件分配块统计，不保证可用空间立即增加相同数值，例如文件仍被其他进程打开时。请刷新磁盘视图查看实际可用空间。
+
+## New analysis tools / 新分析工具
+
+Version 1.2 adds the **空间分析** and **开发环境** pages, plus **空间画像** on the installed-app page. See [the bilingual analysis guide](analysis-tools.md) for exact workflows, evidence rules and accounting. These views inspect and export; they do not delete duplicate files, developer outputs or application data.
+
+1.2 新增 **空间分析**、**开发环境** 页面，以及软件列表中的 **空间画像**。具体操作、识别证据和统计口径见 [双语分析指南](analysis-tools.md)。这些功能用于查看和导出，不删除重复文件、开发产物或软件用户数据。

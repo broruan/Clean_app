@@ -10,6 +10,8 @@ class UninstallController; class QTableView; class QStackedWidget; class QLineEd
 class QComboBox; class QLabel; class QPushButton; class QProgressBar;
 class QPlainTextEdit; class QDialog; class QVBoxLayout; class QSortFilterProxyModel;
 class CachePage;
+class ExplorerPage;
+class DeveloperPage;
 
 class MainWindow : public QMainWindow {
     Q_OBJECT
@@ -36,6 +38,7 @@ private:
     void updateFileSelection();
     void updateAppCount();
     void beginUninstall();
+    void showAppStorage();
     void showRemovalPreview(const QString &summary, const QStringList &affected);
     void openSelectedFileDirectory();
     const AppEntry *selectedApp() const;
@@ -55,7 +58,10 @@ private:
     bool m_inventoryDone = false, m_scanDone = false;
     bool m_scanActive = false;
     bool m_cacheRequested = false;
+    bool m_explorerRequested = false, m_developerRequested = false;
     CachePage *m_cachePage = nullptr;
+    ExplorerPage *m_explorerPage = nullptr;
+    DeveloperPage *m_developerPage = nullptr;
     UninstallController *m_uninstaller = nullptr;
     QStackedWidget *m_pages = nullptr;
     QVector<QPushButton*> m_nav;
@@ -75,6 +81,7 @@ private:
     QComboBox *m_appKind = nullptr, *m_source = nullptr, *m_minSize = nullptr;
     QLabel *m_appCount = nullptr, *m_appDetail = nullptr, *m_fileDetail = nullptr, *m_scanStatus = nullptr, *m_fileCount = nullptr;
     QPushButton *m_remove = nullptr, *m_scanButton = nullptr, *m_cancelButton = nullptr;
+    QPushButton *m_appStorage = nullptr;
     QPushButton *m_openDirectory = nullptr, *m_copyPath = nullptr, *m_browse = nullptr;
     QProgressBar *m_scanProgress = nullptr;
     QDialog *m_operationDialog = nullptr;

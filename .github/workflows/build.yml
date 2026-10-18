@@ -62,7 +62,19 @@ jobs:
           fixture_dir="${RUNNER_TEMP}/disklens-smoke"
           mkdir -p "$fixture_dir"
           printf 'DiskLens read-only smoke fixture\n' > "$fixture_dir/example.txt"
-          QT_QPA_PLATFORM=offscreen timeout 120s disklens --smoke-test --scan-path "$fixture_dir"
+          mkdir -p "$fixture_dir/robot_ws/src/demo" "$fixture_dir/robot_ws/build" "$fixture_dir/robot_ws/log"
+          printf '<package><name>demo</name></package>\n' > "$fixture_dir/robot_ws/src/demo/package.xml"
+          printf 'colcon\n' > "$fixture_dir/robot_ws/build/.built_by"
+          python3 - "$fixture_dir" <<'PY'
+          from pathlib import Path
+          import sys
+          root = Path(sys.argv[1])
+          for name in ('copy-a.bin', 'copy-b.bin'):
+              (root / name).write_bytes(b'DiskLens fixture\n' * 100000)
+          PY
+          for page in overview explorer duplicates developer; do
+            QT_QPA_PLATFORM=offscreen timeout 120s disklens --smoke-test --scan-path "$fixture_dir" --page "$page"
+          done
 
       - name: Upload native package
         uses: actions/upload-artifact@b7c566a772e6b6bfb58ed0dc250532a479d7789f # v6.0.0 (Node 24)

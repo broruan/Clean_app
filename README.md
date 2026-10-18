@@ -23,6 +23,12 @@
 
 DiskLens is a Qt Widgets desktop application written in C++17. It reads your machine's filesystem and package-manager data locally. **The application interface is currently Simplified Chinese**; project documentation is available in English and Chinese. Screenshots show the real application with example scan data; installed-package information is read from the machine used to capture them.
 
+## Why DiskLens
+
+- One Ubuntu workflow for installed packages, their associated user directories, large files and selected cache cleanup.
+- Developer-oriented explanations distinguish rebuildable outputs, dependency environments and original recordings.
+- Reviewable operations and reports: show attribution, affected paths, completeness and size accounting before taking action.
+
 ## What you can do
 
 | View | Capabilities |
@@ -31,11 +37,21 @@ DiskLens is a Qt Widgets desktop application written in C++17. It reads your mac
 | **Installed applications** | Browse DEB, Snap, and Flatpak inventory; filter desktop apps or all packages; search and sort by size. |
 | **Uninstall preview** | Review proposed removal, including APT dependency changes, before confirming through the system authorization dialog. |
 | **Large files** | Scan a directory in the background, choose a size threshold, inspect the largest 500 files, copy a path, or open its folder. |
+| **Directory explorer** | Drill down through a size-sorted directory tree and clickable allocation chart; compare logical and allocated sizes. |
+| **Duplicate files** | Explicit size → sample → complete SHA-256 matching, grouped paths and CSV reports, without deleting files. |
+| **Developer environment** | Recognize colcon outputs, ROS recordings, point clouds, pip/npm/ccache caches and Conda environments; explain evidence and rebuildability. |
+| **Application storage** | Associate known DEB application paths and exact Snap/Flatpak namespaces with package entries; inspect user data separately from package estimates. |
 | **Caches & logs** | Review per-application cache and log usage, filter the list, select specific groups, and confirm their deletion. |
 
 Scans include hidden files, skip symlinks and special files, stay within the selected mount, and deduplicate hard links. The large-file view is read-only. Caches and logs are the only file-cleanup feature.
 
 ![DiskLens cache and log selection](docs/images/cache.png)
+
+![Interactive directory analysis](docs/images/explorer.png)
+
+![Developer environment storage](docs/images/developer.png)
+
+Version 1.2 adds read-only analysis tools. Directory and developer scans begin when their pages are opened; duplicate hashing requires an explicit request and reads candidate file contents. Reports preserve scan scope and partial-result information. See [analysis tools](docs/analysis-tools.md) for workflows, attribution rules, limits and accounting.
 
 ## Ubuntu packages
 
@@ -43,9 +59,9 @@ The release pipeline targets these **64-bit** Ubuntu combinations, with a separa
 
 | Ubuntu | x86-64 / Intel & AMD (`amd64`) | ARM64 / AArch64 (`arm64`) |
 | --- | --- | --- |
-| 22.04 | `disklens_1.1.2_ubuntu22.04_amd64.deb` | `disklens_1.1.2_ubuntu22.04_arm64.deb` |
-| 24.04 | `disklens_1.1.2_ubuntu24.04_amd64.deb` | `disklens_1.1.2_ubuntu24.04_arm64.deb` |
-| 26.04 | `disklens_1.1.2_ubuntu26.04_amd64.deb` | `disklens_1.1.2_ubuntu26.04_arm64.deb` |
+| 22.04 | `disklens_1.2.0_ubuntu22.04_amd64.deb` | `disklens_1.2.0_ubuntu22.04_arm64.deb` |
+| 24.04 | `disklens_1.2.0_ubuntu24.04_amd64.deb` | `disklens_1.2.0_ubuntu24.04_arm64.deb` |
+| 26.04 | `disklens_1.2.0_ubuntu26.04_amd64.deb` | `disklens_1.2.0_ubuntu26.04_arm64.deb` |
 
 Use the package matching **both** your Ubuntu release and CPU architecture. `x86_64` maps to Debian's `amd64`; `aarch64` maps to `arm64`. 32-bit x86 and ARM packages are not provided. Other distributions are outside the packaged support matrix.
 
@@ -61,7 +77,7 @@ Download the matching package from [Releases](https://github.com/broruan/Clean_a
 
 ```bash
 cd ~/Downloads
-sudo apt install ./disklens_1.1.2_ubuntu24.04_amd64.deb
+sudo apt install ./disklens_1.2.0_ubuntu24.04_amd64.deb
 disklens
 ```
 
@@ -107,6 +123,7 @@ See [building and packaging](docs/building.md) for Qt selection, smoke checks, a
 
 | Document | Contents |
 | --- | --- |
+| [Analysis tools / 分析工具](docs/analysis-tools.md) | Directory navigation, duplicate verification, developer classification and app storage |
 | [User guide / 使用指南](docs/usage.md) | Navigation, cleanup rules, uninstall behavior, and size accounting |
 | [Build guide / 构建指南](docs/building.md) | Dependencies, tests, screenshots, and packaging |
 | [Architecture / 源码结构](docs/architecture.md) | Modules, background work, and system interfaces |

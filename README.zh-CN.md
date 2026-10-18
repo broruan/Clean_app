@@ -23,6 +23,12 @@
 
 磁盘透镜是一款使用 **Qt Widgets 与 C++17** 编写的桌面磁盘空间管理应用，直接读取本机文件系统和软件包信息。**应用界面当前为简体中文**，项目文档提供中英双语版本。截图来自真实程序，扫描目录使用示例数据，已安装软件信息来自截图环境的实际读取。
 
+## 为什么选择磁盘透镜
+
+- 将 Ubuntu 软件包、关联用户目录、大文件与所选缓存清理放进同一操作流程。
+- 面向开发环境解释占用，区分构建产物、依赖环境与原始录制数据。
+- 展示识别依据、影响路径、结果完整性与大小口径，让操作范围可核对。
+
 ## 功能
 
 | 页面 | 可以做什么 |
@@ -31,11 +37,21 @@
 | **已安装软件** | 识别 DEB、Snap、Flatpak；切换桌面应用与全部软件包，搜索名称、包名和描述，按体积排序。 |
 | **卸载预览** | 确认前查看卸载范围与 APT 依赖变化，需要权限时由系统授权窗口确认。 |
 | **大文件** | 后台扫描指定目录，选择大小阈值，查看最大的 500 个文件，复制路径或打开所在文件夹。 |
+| **目录空间分析** | 按实际占用排序的目录树与可点击比例图，逐层进入、返回，区分逻辑大小与实际分配空间。 |
+| **重复文件** | 显式启动大小筛选、采样和完整 SHA-256 校验，查看相同内容分组并导出报告，不自动删除文件。 |
+| **开发环境** | 识别 colcon 产物、ROS 录制、点云、pip/npm/ccache 缓存及 Conda 环境，说明识别依据和可重建性。 |
+| **软件空间画像** | 从已安装软件关联已知 DEB 数据目录及 Snap/Flatpak 用户目录，分别查看包记录体积与用户数据。 |
 | **缓存与日志** | 按应用查看占用，筛选普通缓存或日志，勾选具体分组后确认清理。 |
 
 扫描包含隐藏文件，忽略符号链接和特殊文件，不跨挂载点，硬链接去重。大文件页面只读查看；文件删除功能仅位于缓存与日志页面。
 
 ![磁盘透镜缓存与日志](docs/images/cache.png)
+
+![逐层目录空间分析](docs/images/explorer.png)
+
+![开发环境空间分析](docs/images/developer.png)
+
+1.2 新增的分析工具均为只读。目录与开发环境扫描在进入页面后启动；重复文件校验需要显式发起，会读取候选文件内容。报告包含扫描范围及部分结果标记。具体流程、识别规则、上限和统计口径见 [分析工具指南](docs/analysis-tools.md)。
 
 ## Ubuntu 安装包
 
@@ -43,9 +59,9 @@
 
 | Ubuntu | x86-64 / Intel 与 AMD（`amd64`） | ARM64 / AArch64（`arm64`） |
 | --- | --- | --- |
-| 22.04 | `disklens_1.1.2_ubuntu22.04_amd64.deb` | `disklens_1.1.2_ubuntu22.04_arm64.deb` |
-| 24.04 | `disklens_1.1.2_ubuntu24.04_amd64.deb` | `disklens_1.1.2_ubuntu24.04_arm64.deb` |
-| 26.04 | `disklens_1.1.2_ubuntu26.04_amd64.deb` | `disklens_1.1.2_ubuntu26.04_arm64.deb` |
+| 22.04 | `disklens_1.2.0_ubuntu22.04_amd64.deb` | `disklens_1.2.0_ubuntu22.04_arm64.deb` |
+| 24.04 | `disklens_1.2.0_ubuntu24.04_amd64.deb` | `disklens_1.2.0_ubuntu24.04_arm64.deb` |
+| 26.04 | `disklens_1.2.0_ubuntu26.04_amd64.deb` | `disklens_1.2.0_ubuntu26.04_arm64.deb` |
 
 请同时匹配 **Ubuntu 版本与 CPU 架构**。`x86_64` 在 Debian 包中称为 `amd64`，`aarch64` 对应 `arm64`。不提供 32 位 x86 / ARM 安装包，其他 Linux 发行版不在预编译包支持矩阵内。
 
@@ -61,7 +77,7 @@ dpkg --print-architecture
 
 ```bash
 cd ~/Downloads
-sudo apt install ./disklens_1.1.2_ubuntu24.04_amd64.deb
+sudo apt install ./disklens_1.2.0_ubuntu24.04_amd64.deb
 disklens
 ```
 
@@ -107,6 +123,7 @@ ctest --test-dir build --output-on-failure
 
 | 文档 | 内容 |
 | --- | --- |
+| [分析工具 / Analysis tools](docs/analysis-tools.md) | 目录导航、重复校验、开发目录分类与软件空间画像 |
 | [使用指南 / User guide](docs/usage.md) | 页面操作、清理规则、卸载行为与体积口径 |
 | [构建指南 / Build guide](docs/building.md) | 开发依赖、测试、截图与安装包 |
 | [源码结构 / Architecture](docs/architecture.md) | 模块职责、后台任务和系统接口 |

@@ -1,5 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
-project(DiskLens VERSION 1.1.2 LANGUAGES CXX)
+project(DiskLens VERSION 1.2.0 LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -20,6 +20,9 @@ add_library(disklens_core STATIC
     src/filescanner.h src/filescanner.cpp
     src/cachebackend.h src/cachebackend.cpp
     src/uninstallcontroller.h src/uninstallcontroller.cpp
+    src/spaceanalyzer.h src/spaceanalyzer.cpp
+    src/developerbackend.h src/developerbackend.cpp
+    src/appstorage.h src/appstorage.cpp
 )
 target_include_directories(disklens_core PUBLIC src)
 target_link_libraries(disklens_core PUBLIC Qt${QT_VERSION_MAJOR}::Core)
@@ -29,6 +32,9 @@ add_executable(disklens
     src/main.cpp src/mainwindow.h src/mainwindow.cpp
     src/models.h src/models.cpp src/widgets.h src/widgets.cpp
     src/cachepage.h src/cachepage.cpp
+    src/explorerpage.h src/explorerpage.cpp
+    src/developerpage.h src/developerpage.cpp
+    src/appstoragedialog.h src/appstoragedialog.cpp
     assets/resources.qrc
 )
 target_link_libraries(disklens PRIVATE disklens_core Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Concurrent)
@@ -47,7 +53,7 @@ install(FILES packaging/copyright DESTINATION share/doc/disklens)
 include(CTest)
 if(BUILD_TESTING)
     find_package(Qt${QT_VERSION_MAJOR} REQUIRED COMPONENTS Test)
-    foreach(test_name scanner inventory uninstall cache)
+    foreach(test_name scanner inventory uninstall cache spaceanalyzer developer appstorage)
         if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/${test_name}_test.cpp")
             add_executable(${test_name}_test tests/${test_name}_test.cpp)
             target_link_libraries(${test_name}_test PRIVATE disklens_core Qt${QT_VERSION_MAJOR}::Test)
@@ -60,4 +66,12 @@ if(BUILD_TESTING)
         add_test(NAME cachepage COMMAND cachepage_test)
         set_tests_properties(cachepage PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
     endif()
+    foreach(test_name explorerpage developerpage appstoragedialog)
+        if(EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/tests/${test_name}_test.cpp")
+            add_executable(${test_name}_test tests/${test_name}_test.cpp src/${test_name}.h src/${test_name}.cpp src/models.cpp src/widgets.cpp)
+            target_link_libraries(${test_name}_test PRIVATE disklens_core Qt${QT_VERSION_MAJOR}::Widgets Qt${QT_VERSION_MAJOR}::Concurrent Qt${QT_VERSION_MAJOR}::Test)
+            add_test(NAME ${test_name} COMMAND ${test_name}_test)
+            set_tests_properties(${test_name} PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
+        endif()
+    endforeach()
 endif()

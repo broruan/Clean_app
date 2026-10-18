@@ -31,7 +31,7 @@ ctest --test-dir build --output-on-failure
 
 `baobab` supplies a harmless installed desktop application for inventory mapping and read-only APT preview tests; CI installs it for those checks. It is a test fixture, not a DiskLens runtime dependency.
 
-CTest contains five targets: `scanner`, `inventory`, `uninstall`, `cache`, and `cachepage`. Conditional integration cases may be skipped when an optional package manager or fixture application is absent. Read the test output as well as its final status. See [validation scope](validation.md).
+CTest contains eleven targets: `scanner`, `inventory`, `uninstall`, `cache`, `cachepage`, `spaceanalyzer`, `explorerpage`, `developer`, `developerpage`, `appstorage`, and `appstoragedialog`. Conditional integration cases may be skipped when an optional package manager or fixture application is absent. Read the test output as well as its final status. See [validation scope](validation.md).
 
 ### Read-only UI smoke checks
 
@@ -44,7 +44,7 @@ QT_QPA_PLATFORM=offscreen ./build/disklens --smoke-test \
   --scan-path /tmp --page cache --screenshot /tmp/disklens-cache.png
 ```
 
-`--page` accepts `overview`, `apps`, `files`, or `cache`. Smoke mode waits for inventory and scan work, checks UI state, optionally saves a screenshot, and exits. It does not execute uninstall, authorization, or cache deletion. Offscreen checks do not replace testing an actual desktop session.
+`--page` accepts `overview`, `apps`, `files`, `cache`, `explorer`, `duplicates`, or `developer`. Smoke mode waits for inventory and scan work, checks UI state, optionally saves a screenshot, and exits. It does not execute uninstall, authorization, or cache deletion. The explicit `duplicates` page reads candidate file contents for verification; the developer page reads small classification marker files. Offscreen checks do not replace testing an actual desktop session.
 
 ### Build a Debian package
 
@@ -58,11 +58,11 @@ The script builds in a fresh temporary directory, runs tests, creates and valida
 bash packaging/build-deb.sh --qt-major 5 --jobs 2 --output-dir /tmp/disklens-packages
 ```
 
-Names include version, Ubuntu release, and Debian architecture, for example `disklens_1.1.2_ubuntu24.04_arm64.deb`. The script discovers shared-library dependencies with `dpkg-shlibdeps` and adds runtime integrations such as the matching SVG plugin, `pkexec`, and `xdg-utils`. This allows the package metadata to follow each Ubuntu release's actual library names, including `t64` transitions.
+Names include version, Ubuntu release, and Debian architecture, for example `disklens_1.2.0_ubuntu24.04_arm64.deb`. The script discovers shared-library dependencies with `dpkg-shlibdeps` and adds runtime integrations such as the matching SVG plugin, `pkexec`, and `xdg-utils`. This allows the package metadata to follow each Ubuntu release's actual library names, including `t64` transitions.
 
 ### Release automation
 
-[`.github/workflows/build.yml`](../.github/workflows/build.yml) defines native Ubuntu 22.04 / 24.04 / 26.04 jobs for `amd64` and `arm64`. A version tag such as `v1.1.2` triggers the release workflow. All matrix jobs must succeed before the release job gathers six packages and publishes them with `SHA256SUMS`. Check the workflow attached to the tag before stating that a platform passed.
+[`.github/workflows/build.yml`](../.github/workflows/build.yml) defines native Ubuntu 22.04 / 24.04 / 26.04 jobs for `amd64` and `arm64`. A version tag such as `v1.2.0` triggers the release workflow. All matrix jobs must succeed before the release job gathers six packages and publishes them with `SHA256SUMS`. Check the workflow attached to the tag before stating that a platform passed.
 
 ## 简体中文
 
@@ -93,13 +93,13 @@ ctest --test-dir build --output-on-failure
 
 `baobab` 为桌面入口映射与只读 APT 预览测试提供无害的已安装应用，CI 会安装它；这是测试样例，不是 DiskLens 运行依赖。
 
-CTest 包含 `scanner`、`inventory`、`uninstall`、`cache`、`cachepage` 五个目标。缺少可选包管理器或测试所需应用时，部分集成测试会跳过，应同时阅读输出中的跳过说明。详见 [验证范围](validation.md)。
+CTest 包含原有 `scanner`、`inventory`、`uninstall`、`cache`、`cachepage`，以及新增 `spaceanalyzer`、`explorerpage`、`developer`、`developerpage`、`appstorage`、`appstoragedialog`，共十一个目标。缺少可选包管理器或测试所需应用时，部分集成测试会跳过，应同时阅读输出中的跳过说明。详见 [验证范围](validation.md)。
 
 ### 只读界面检查
 
 选择较小且有权读取的目录，使用上方英文部分的两条 `--smoke-test` 命令。截图可能包含本机路径和软件名称，分享前请检查。
 
-`--page` 支持 `overview`、`apps`、`files`、`cache`。检查模式等待库存读取与扫描，验证界面状态、按需截图后退出，不执行卸载、系统授权或缓存删除。离屏检查不能代替真实桌面会话验证。
+`--page` 支持 `overview`、`apps`、`files`、`cache`、`explorer`、`duplicates`、`developer`。检查模式等待库存读取与扫描，验证界面状态、按需截图后退出，不执行卸载、系统授权或缓存删除。指定 `duplicates` 会读取候选文件内容进行校验，开发目录识别会限量读取分类标记文件。离屏检查不能代替真实桌面会话验证。
 
 ### 生成安装包
 
@@ -109,8 +109,8 @@ bash packaging/build-deb.sh --qt-major 5 --jobs 2
 
 脚本在全新临时目录构建、运行测试、生成并检查安装包，默认输出至 `dist/`，不会安装软件。通过 `--output-dir /tmp/disklens-packages` 可指定其他目录。
 
-包名包含版本、Ubuntu 版本与 Debian 架构，例如 `disklens_1.1.2_ubuntu24.04_arm64.deb`。依赖通过 `dpkg-shlibdeps` 根据实际链接库生成，并补充对应 SVG 插件、`pkexec` 与 `xdg-utils`，可跟随不同 Ubuntu 版本的库命名及 `t64` 变化。
+包名包含版本、Ubuntu 版本与 Debian 架构，例如 `disklens_1.2.0_ubuntu24.04_arm64.deb`。依赖通过 `dpkg-shlibdeps` 根据实际链接库生成，并补充对应 SVG 插件、`pkexec` 与 `xdg-utils`，可跟随不同 Ubuntu 版本的库命名及 `t64` 变化。
 
 ### 发布流水线
 
-[`.github/workflows/build.yml`](../.github/workflows/build.yml) 定义 Ubuntu 22.04 / 24.04 / 26.04 的 `amd64`、`arm64` 原生构建任务。推送 `v1.1.2` 形式的版本标签后触发发布；全部矩阵任务成功后，发布任务汇总六个安装包并附带 `SHA256SUMS`。只有对应标签的实际工作流结果才能证明某个平台已经通过。
+[`.github/workflows/build.yml`](../.github/workflows/build.yml) 定义 Ubuntu 22.04 / 24.04 / 26.04 的 `amd64`、`arm64` 原生构建任务。推送 `v1.2.0` 形式的版本标签后触发发布；全部矩阵任务成功后，发布任务汇总六个安装包并附带 `SHA256SUMS`。只有对应标签的实际工作流结果才能证明某个平台已经通过。

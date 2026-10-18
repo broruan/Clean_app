@@ -13,6 +13,9 @@ flowchart TD
     Scanner[Large-file scanner / 大文件扫描]
     Cache[Cache backend / 缓存后端]
     Uninstall[Uninstall controller / 卸载状态机]
+    Explorer[Directory and duplicate analysis / 目录与重复分析]
+    Developer[Developer classification / 开发目录识别]
+    Attribution[Application storage / 软件数据关联]
     FS[Linux filesystem / 文件系统]
     PM[dpkg / APT / Snap / Flatpak]
     Auth[System Polkit dialog / 系统授权]
@@ -21,6 +24,12 @@ flowchart TD
     Main --> Inventory
     Main --> Scanner
     Main --> Uninstall
+    Main --> Explorer
+    Main --> Developer
+    Main --> Attribution
+    Explorer --> FS
+    Developer --> FS
+    Attribution --> Explorer
     CachePage --> Cache
     Scanner --> FS
     Cache --> FS
@@ -40,6 +49,10 @@ flowchart TD
 | [`src/cachepage.cpp`](../src/cachepage.cpp) | Cache table, full-row / Space selection, filtered selection, confirmation, background cleanup and rescan. 缓存表格、整行与空格勾选、筛选选择、确认、后台清理和重扫。 |
 | [`src/cachebackend.cpp`](../src/cachebackend.cpp) | Cache / log grouping, signed in-process scan manifests, path and file revalidation, selected-file unlinking. 缓存日志分组、进程内快照签名、路径与文件复核、删除所选文件。 |
 | [`src/uninstallcontroller.cpp`](../src/uninstallcontroller.cpp) | Asynchronous preview / revalidation / removal stages, process logs, identifier checks, package protection. 异步预览、复核与卸载状态机、日志、标识校验与组件保护。 |
+| [`src/spaceanalyzer.cpp`](../src/spaceanalyzer.cpp) | Bounded directory hierarchy and complete SHA-256 verification behind a read-only interface. 有界目录层级统计与完整 SHA-256 校验。 |
+| [`src/explorerpage.cpp`](../src/explorerpage.cpp) | Drill-down navigation, allocation chart, explicit hashing and report export. 逐层导航、占用比例图、显式哈希与报告导出。 |
+| [`src/developerbackend.cpp`](../src/developerbackend.cpp) / [`src/developerpage.cpp`](../src/developerpage.cpp) | Evidence-based classification, disjoint totals, explanations and export. 基于结构证据分类、避免重叠计量、用途说明与导出。 |
+| [`src/appstorage.cpp`](../src/appstorage.cpp) / [`src/appstoragedialog.cpp`](../src/appstoragedialog.cpp) | Explicit application data associations and separate per-location measurements. 明确关联规则与逐目录统计。 |
 | [`tests/`](../tests) | Backend fixtures, installed-system read-only checks, and styled cache-page regression tests. 后端临时目录测试、已安装系统只读检查与正式样式界面回归。 |
 | [`packaging/`](../packaging) | Desktop entry, isolated package build, dependency generation and package checks. 桌面入口、隔离构建、依赖生成和包检查。 |
 

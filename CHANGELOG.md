@@ -1,5 +1,15 @@
 # Changelog / 更新记录
 
+
+## 1.2.0 — 2026-10-18
+
+- Added interactive directory hierarchy and a clickable current-level allocation chart, with logical/allocated sizes, hard-link deduplication and explicit partial results. / 新增逐层目录分析、可点击占用比例图、逻辑与实际大小及部分结果说明。
+- Added explicit duplicate detection using size, head/tail samples and complete SHA-256; reports contain grouped paths and logical redundancy without deleting files. / 新增显式完整内容重复校验、分组路径及逻辑冗余报告，不自动删除。
+- Added developer storage classification for colcon outputs, ROS recordings, point clouds, pip/npm/ccache caches and Conda environments, with evidence and rebuildability explanations. / 新增开发目录识别、结构证据及用途和可重建性说明。
+- Added application storage attribution for known DEB directories and Snap/Flatpak namespaces, separately measured from package estimates. / 新增软件空间画像，分别显示包估算与关联用户目录。
+- Added atomic CSV reports with scope, completeness and spreadsheet-formula protection; existing scanned inputs cannot be overwritten by export. / 新增原子 CSV 导出、扫描范围和完整性标记及公式保护，阻止覆盖已扫描输入。
+- Expanded automated tests and installed-package smoke checks for the new views. / 扩展自动测试和安装后新页面检查。
+
 ## [1.1.2] - 2026-10-18
 
 ### English
