@@ -4,9 +4,13 @@
 
 ## Version 1.3.0 / 版本 1.3.0
 
-Version 1.3.0 adds in-app English / Simplified Chinese switching, persistent font size preferences and session-only command-line overrides. Its targeted checks cover translation completeness and placeholders, preference persistence, production-style font scaling, visible language settings and safe appearance-change boundaries. The full suite now contains 13 CTest targets. Local Ubuntu 22.04 amd64 / Qt 5.15.3 checks passed all 13 targets, compiled translation coverage for 540 messages, and all seven pages in Chinese 13 px, English 13 px and English 18 px with isolated fixtures. Results for the exact 1.3.0 tag and its six native package jobs will be recorded after those checks complete; the 1.2.0 results below are historical evidence.
+[Release CI #10](https://github.com/broruan/DiskLens/actions/runs/39109060208), tag `v1.3.0`, commit `e4a7b8f`: all six native combinations passed on 2026-10-18 — Ubuntu 22.04 / 24.04 / 26.04 × amd64 / arm64. Each ran all 13 CTest targets, verified and installed its DEB, checked all seven pages in both languages, and checked overview/cache/explorer/developer at English 18 px. The release completed in 2m 30s and published six DEBs plus SHA256SUMS. All six published downloads were independently verified against SHA-256 and version/architecture metadata. The same commit also passed the [main-branch run](https://github.com/broruan/DiskLens/actions/runs/39109059959).
 
-1.3.0 新增应用内中英文切换、字体大小偏好保存与仅本次启动的命令行覆盖。针对性检查覆盖译文完整性与占位符、偏好持久化、正式样式字体缩放、可见语言设置入口，以及外观切换的操作边界；完整测试现为 13 个 CTest 目标。本机 Ubuntu 22.04 amd64 / Qt 5.15.3 已通过全部 13 项、540 条编译译文检查，以及隔离样例下七类页面的中文 13 px、英文 13 px、英文 18 px 检查。对应 1.3.0 标签与六个原生安装包任务完成后将补充实际结果；下方 1.2.0 记录保留为历史证据。
+2026-10-18，[发布 CI #10](https://github.com/broruan/DiskLens/actions/runs/39109060208) 在 `v1.3.0`、`e4a7b8f` 上完成六个原生平台检查：Ubuntu 22.04 / 24.04 / 26.04 × amd64 / arm64 全部通过。每个平台均执行 13 个 CTest 目标、DEB 检查与安装，以及七类页面的双语检查和总览、缓存、目录、开发页面的英文 18 px 检查。发布共用时 2 分 30 秒，生成六个 DEB 与 SHA256SUMS；发布后重新下载，六个包的 SHA-256、版本和架构全部正确。同一提交的 [主分支构建](https://github.com/broruan/DiskLens/actions/runs/39109059959) 也已通过。
+
+Version 1.3.0 adds in-app English / Simplified Chinese switching, persistent font size preferences and session-only command-line overrides. Its targeted checks cover translation completeness and placeholders, preference persistence, production-style font scaling, visible language settings and safe appearance-change boundaries. The full suite now contains 13 CTest targets. Local Ubuntu 22.04 amd64 / Qt 5.15.3 checks passed all 13 targets, compiled translation coverage for 540 messages, and all seven pages in Chinese 13 px, English 13 px and English 18 px with isolated fixtures. The 1.2.0 results below remain historical evidence.
+
+1.3.0 新增应用内中英文切换、字体大小偏好保存与仅本次启动的命令行覆盖。针对性检查覆盖译文完整性与占位符、偏好持久化、正式样式字体缩放、可见语言设置入口，以及外观切换的操作边界；完整测试现为 13 个 CTest 目标。本机 Ubuntu 22.04 amd64 / Qt 5.15.3 已通过全部 13 项、540 条编译译文检查，以及隔离样例下七类页面的中文 13 px、英文 13 px、英文 18 px 检查。下方 1.2.0 记录保留为历史证据。
 
 ## Version 1.2.0 / 版本 1.2.0
 
