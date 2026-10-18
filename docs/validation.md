@@ -4,9 +4,13 @@
 
 ## Version 1.2.0 / 版本 1.2.0
 
-Local Ubuntu 22.04 amd64 / Qt 5.15.3: all **11 CTest targets** passed, and the updated application passed read-only smoke checks for overview, cache, explorer, duplicates and developer pages using disposable fixtures. Release CI results must be checked on the exact tag; the previous 1.1.2 evidence below remains historical.
+[Release CI #6](https://github.com/broruan/Clean_app/actions/runs/39090501349) passed on 2026-10-18 for tag `v1.2.0`, commit `ab2ade5`. **All six combinations passed**: Ubuntu 22.04, 24.04 and 26.04, each on amd64 and arm64. Each job ran all 11 CTest targets, verified and installed its DEB, and ran installed-app read-only smoke checks for overview, explorer, duplicates and developer pages. The release job published six DEBs and `SHA256SUMS`; all six published downloads were independently checked against their SHA-256 values and version/architecture metadata.
 
-本机 Ubuntu 22.04 amd64 / Qt 5.15.3 的 **11 个 CTest 目标**全部通过，使用临时样例对总览、缓存、目录分析、重复文件和开发环境页面运行只读检查并截图。新版发布矩阵以对应标签的实际 CI 为准；下方 1.1.2 记录保留为历史证据。
+2026-10-18，[正式发布 CI #6](https://github.com/broruan/Clean_app/actions/runs/39090501349) 在标签 `v1.2.0`、提交 `ab2ade5` 上通过。Ubuntu 22.04、24.04、26.04 的 amd64 与 arm64 **六个组合全部通过**：各自完成 11 个 CTest 目标、DEB 检查、安装及四类新旧页面的安装后只读检查。发布任务生成六个安装包和校验文件；发布后重新下载六个包，SHA-256 与版本、架构元数据均验证正确。
+
+Local Ubuntu 22.04 amd64 / Qt 5.15.3: all **11 CTest targets** passed, and the updated application passed read-only smoke checks for overview, cache, explorer, duplicates and developer pages using disposable fixtures. The previous 1.1.2 evidence below remains historical.
+
+本机 Ubuntu 22.04 amd64 / Qt 5.15.3 的 **11 个 CTest 目标**全部通过，使用临时样例对总览、缓存、目录分析、重复文件和开发环境页面运行只读检查并截图。下方 1.1.2 记录保留为历史证据。
 
 ## Release v1.1.2 / 已验证发布
 
